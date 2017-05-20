@@ -15,7 +15,7 @@
 FLAGS=-g -Wall -Wpedantic -O4 -lm
 
 
-all: naive cudaNaive cudaDP
+all: main 
 
 main: main.o naive.o common.o # cudaNaive.o cudaDP.o
 	g++ $(FLAGS) metrics.o common.o naive.o main.o -o main
@@ -34,7 +34,7 @@ cudaDP.o: cudaDP.cu metrics.o
 naive.o: naive.c metrics.o common.o
 	g++ $(FLAGS) metrics.o common.o -c naive.c
 
-metrics.o: metrics.c metrics.h
+metrics.o: metrics.c
 	g++ $(FLAGS) -c metrics.c 
 
 common.o: common.c
@@ -42,5 +42,5 @@ common.o: common.c
 
 clean:
 	find \( -name '*.out' -or -name '*.o' -or -name '*~' -or -name '*.ppm' \) -delete
-	rm naive cudaNaive cudaDP
+	rm main
 

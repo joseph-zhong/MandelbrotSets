@@ -68,6 +68,9 @@ int main(int argc, char *argv[]) {
   if (strcmp(kernel, NAIVE_HOST) == 0) {
     naiveMandelbrotSets(y, x, height, width, maxIterations, zoom, yPos, xPos, radius, fp);
   }
+  if (strcmp(kernel, CUDA_NAIVE) == 0) {
+    
+  }
   
   reportClock();
   reportOperations();
