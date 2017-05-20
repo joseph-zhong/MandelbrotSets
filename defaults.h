@@ -25,12 +25,18 @@
 #define ZOOM_DEFAULT 1.0
 #define RADIUS_DEFAULT 4.0
 
+// Input kernels.
+#define NAIVE_HOST "naive"
+#define CUDA_NAIVE "cudaNaive"
+#define CUDA_DP "cudaDP"
+
 // Default output values.
 #define OUT_DEFAULT "images/out.ppm"
 #define NAIVE_OUT_DEFAULT "images/naive.ppm"
 #define CUDA_NAIVE_OUT_DEFAULT "images/cudaNaive.ppm"
 #define CUDA_DP_OUT_DEFAULT "images/cudaDP.ppm"
 
+// Usage and example.
 #define USAGE "Usage:   \n\t%s <width> <height> <maxiter> <output> \n"
 #define EXAMPLE "Example: \n\t%s 600 400 1000 images/out.ppm\n\n" 
 
