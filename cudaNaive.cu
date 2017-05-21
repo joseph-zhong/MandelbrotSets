@@ -23,16 +23,19 @@
 #include "defaults.h"
 #include "metrics.h"
 
-__global__ void naiveMandelbrotSets(int height, int width, int maxIterations, 
+__global__ void naiveMandelbrotSetsKernel(int height, int width, int maxIterations, 
      const float zoom, const float yPos, const float xPos, const float radius, 
-     FILE *fp) {
-  // clock_t begin = clock();
+     char *d_output, long int *d_operations) {
   double newRe, newIm, oldRe, oldIm, pr, pi; 
   
   // Naively iterate through each pixel.
   int y = threadIdx.y + blockDim.y * blockIdx.y;
   int x = threadIdx.x + blockDim.x * blockIdx.x;
-
+  
+  if (x >= width || y >= height) return;
+  
+  int output_index = 3*width*y + x*3;
+    
   // Calculate Z from the pixel location, zoom, and position values.
   pr = 1.5 * (x - width / 2) / (0.5 * zoom * width) + xPos; // 8 Ops.
   pi = (y - height / 2) / (0.5 * zoom * height) + yPos;     // 7 Ops.
@@ -51,17 +54,19 @@ __global__ void naiveMandelbrotSets(int height, int width, int maxIterations,
 
   // If iteration limit is reached, fill black. Colored otherwise.
   if(i == maxIterations) {
-    // endClock(begin);
-    // g_operations += 43; 
-    // color(0, 0, 0, fp);
+    *d_operations += 43;
+    d_output[output_index] = (char) 0;
+    d_output[output_index + 1] = (char) 0;
+    d_output[output_index + 2] = (char) 0;
   }   
   else {
-    // endClock(begin);
-    // g_operations += 56;
+    *d_operations += 56;
 
     double z = sqrt(newRe * newRe + newIm * newIm);
     int brightness = 256. * log2(1.75 + i - log2(log2(z))) / log2((double)maxIterations);
-    // color(brightness, brightness, 255, fp);
+    d_output[output_index] = (char) brightness;
+    d_output[output_index] = (char) brightness;
+    d_output[output_index] = (char) 255;
   }
 }
 

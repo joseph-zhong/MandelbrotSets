@@ -12,24 +12,23 @@
 #
 ###
 
-FLAGS=-g -Wall -Wpedantic -O4 -lm
+FLAGS=-g -O4 -lm
 
 
 all: main 
 
-main: main.o naive.o common.o # cudaNaive.o cudaDP.o
-	g++ $(FLAGS) metrics.o common.o naive.o main.o -o main
-	./main
-	xdg-open images/naive.ppm
-
-main.o: main.c common.o
-	g++ $(FLAGS) common.o -c main.c
+main: metrics.o common.o common.o naive.o cudaNaive.o main.cu # cudaDP.o
+	nvcc $(FLAGS) metrics.o common.o naive.o cudaNaive.o main.cu -o main
+	# ./main
+	./main 600 400 1000 cudaNaive images/cudaNaive.ppm 
+	# ./main 600 400 1000 cudaDP images/cudaDP.ppm 
+	xdg-open images/cudaNaive.ppm
 
 cudaNaive.o: cudaNaive.cu metrics.o
-	nvcc $(FLAGS) metrics.o cudaNaive.cu -o cudaNaive
+	nvcc $(FLAGS) metrics.o -c cudaNaive.cu
 
 cudaDP.o: cudaDP.cu metrics.o
-	nvcc $(FLAGS) metrics.o cudaDP.cu -o cudaDP
+	nvcc $(FLAGS) metrics.o -c cudaDP.cu
 
 naive.o: naive.c metrics.o common.o
 	g++ $(FLAGS) metrics.o common.o -c naive.c

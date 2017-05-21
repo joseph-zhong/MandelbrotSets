@@ -6,13 +6,9 @@
 // Instructor: Tanner Schmidt
 // Exploring Dynamic Parallelism in CUDA C with Mandelbrot Sets.
 //
-// naive.c
-// --- 
-//  
-//  This is a naive C implementation.
-//
-//  Each iteration the newZ is calculated from the square of the prevZ summed
-//  with the current pixel value. We begin at the origin.
+// main.cu
+// ---
+//  This is the main program which launches computer kernels.
 //
 
 #include <math.h>
@@ -22,12 +18,14 @@
 #include <time.h>
 #include <string.h>
 
+#include "cudaNaive.h"
 #include "common.h"
 #include "defaults.h"
 #include "metrics.h"
 #include "naive.h"
 #include "cudaNaive.h"
 #include "cudaDP.h"
+
 
 int main(int argc, char *argv[]) {
   // Default operational values.
@@ -69,7 +67,37 @@ int main(int argc, char *argv[]) {
     naiveMandelbrotSets(y, x, height, width, maxIterations, zoom, yPos, xPos, radius, fp);
   }
   if (strcmp(kernel, CUDA_NAIVE) == 0) {
+    const int OUTPUT_SIZE = sizeof(char) * height * width * 3;
+    char *h_output = (char*) malloc(OUTPUT_SIZE);
+    long int *h_operations = (long int*) malloc(sizeof(long int));
+
+    char *d_output;
+    long int *d_operations;
+    cudaCheck(cudaMalloc(&d_operations, sizeof(long int)));
+    cudaCheck(cudaMalloc(&d_output, OUTPUT_SIZE));
+    cudaCheck(cudaMemset(d_output, 0, OUTPUT_SIZE));
     
+    dim3 gridSize(ceil(width / TILE_WIDTH), ceil(height / TILE_WIDTH), 1);
+    dim3 blockSize(TILE_WIDTH, TILE_WIDTH, 1);
+
+    clock_t begin = clock();
+
+    naiveMandelbrotSetsKernel<<<gridSize, blockSize, 0>>>(
+        height, width, maxIterations, zoom, yPos, xPos, radius, d_output, d_operations); 
+    cudaDeviceSynchronize();
+
+    
+    cudaCheck(cudaMemcpy(h_output, d_output, OUTPUT_SIZE, cudaMemcpyDeviceToHost));
+    
+    endClock(begin); // temporarily put this here -- really should be above!!!!! 
+    
+    cudaCheck(cudaMemcpy(h_operations, d_operations, sizeof(long int), cudaMemcpyDeviceToHost));
+    cudaFree(d_output);
+
+    fwrite(h_output, OUTPUT_SIZE, 1, fp);
+    g_operations = *h_operations;
+
+    free(h_output);
   }
   
   reportClock();

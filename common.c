@@ -32,12 +32,13 @@ void color(int red, int green, int blue, FILE *fp) {
 void parseArgs(int argc, char *argv[], 
     int *width, int *height, int *maxIterations, 
     char **kernel, char **filename) {
-  printf(USAGE, argv[0]);
-  printf(EXAMPLE, argv[0]);
-
+  if (VERBOSE) {
+    printf(USAGE, argv[0]);
+    printf(EXAMPLE, argv[0]);
+  }
   // Set default operation arguments if needed. Parse cmdline arguments
   // otherwise. 
-  if (argc != 5) {
+  if (argc != 6) {
     // Set default operational values.
     *width = WIDTH_DEFAULT;
     *height = HEIGHT_DEFAULT;
@@ -57,6 +58,6 @@ void parseArgs(int argc, char *argv[],
   assert(*height > 0 && "Passed height must be positive.\n");
   assert(*maxIterations > 0 && "Passed maxIterations must be positive.\n");
   assert(strcmp(*kernel, NAIVE_HOST) == 0 || strcmp(*kernel, CUDA_NAIVE) == 0 || strcmp(*kernel, CUDA_DP) == 0);
-  assert(access(*filename, W_OK) == 0 && "Passed output filename could not be opend for writing.\n");
+//  assert(access(*filename, W_OK) == 0 && "Passed output filename could not be opened for writing.\n");
 }
 

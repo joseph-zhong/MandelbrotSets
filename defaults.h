@@ -25,6 +25,9 @@
 #define ZOOM_DEFAULT 1.0
 #define RADIUS_DEFAULT 4.0
 
+// CUDA Tile Sizes
+#define TILE_WIDTH 16
+
 // Input kernels.
 #define NAIVE_HOST "naive"
 #define CUDA_NAIVE "cudaNaive"
@@ -37,8 +40,8 @@
 #define CUDA_DP_OUT_DEFAULT "images/cudaDP.ppm"
 
 // Usage and example.
-#define USAGE "Usage:   \n\t%s <width> <height> <maxiter> <output> \n"
-#define EXAMPLE "Example: \n\t%s 600 400 1000 images/out.ppm\n\n" 
+#define USAGE "Usage:   \n\t%s <width> <height> <maxiter> <kernel> <output> \n"
+#define EXAMPLE "Example: \n\t%s 600 400 1000 naive images/out.ppm\n\n" 
 
 // This is a debugging print statement which 
 // prints if VERBOSE is set to true.
@@ -50,6 +53,22 @@
     printf("\n");                               \
   }                                             \
 }         
+
+
+// This checks for a cudaError and exits the program 
+// with EXIT_FAILURE if an error was detected.
+#define cudaCheck(stmt)                          \
+{                                                \
+  cudaError_t err = stmt;                        \
+  if (err != cudaSuccess) {                      \
+    printf("\nERROR ERROR ERROR\n");             \
+    printf("ERROR ERROR ERROR\n\n");             \
+    printf("\tFailed to run %s\n", "stmt");      \
+    printf("\nERROR ERROR ERROR\n");             \
+    printf("ERROR ERROR ERROR\n");               \
+    return EXIT_FAILURE;                         \
+  }                                              \
+} 
 
 #endif // DEFAULTS_H
 

@@ -27,7 +27,7 @@ void endClock(clock_t start) {
 void reportClock() {
   printf("Clock Report\n");
   printf("------------\n");
-  printf("\tTotal Time(in seconds): %5.3f\n\n", g_time_spent / 1000);
+  printf("\tTotal Time(in thousand clock ticks): %5.3f\n\n", g_time_spent / 1000);
 }
 
 void reportOperations() {

@@ -15,6 +15,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+
 // Writes RGB to a ppm FILE*. 
 void color(int red, int green, int blue, FILE *fp);
 
