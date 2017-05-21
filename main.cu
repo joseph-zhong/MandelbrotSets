@@ -43,8 +43,8 @@ int main(int argc, char *argv[]) {
   if (VERBOSE) {
     printf("\n[main] OPERATING PARAMETERS\n");
     printf("-----------------------------\n");
-    printf("\twidth: '%d'\n\theight: '%d'\n\tmaxIterations: '%d'\n\tfilename: '%s'\n\n",
-        width, height, maxIterations, filename);
+    printf("\twidth: '%d'\n\theight: '%d'\n\tmaxIterations: '%d'\n\tkernel: '%s'\n\tfilename: '%s'\n\n",
+        width, height, maxIterations, kernel, filename);
   }
 
   // Set filename for output image.
@@ -64,40 +64,56 @@ int main(int argc, char *argv[]) {
   fprintf(fp, "P6\n# Mandelbrot Set. \n%d %d\n255\n", width, height);
 
   if (strcmp(kernel, NAIVE_HOST) == 0) {
+    if (VERBOSE) {
+      printf("[main] Running NAIVE_HOST\n\n");
+    }
     naiveMandelbrotSets(y, x, height, width, maxIterations, zoom, yPos, xPos, radius, fp);
   }
   if (strcmp(kernel, CUDA_NAIVE) == 0) {
+    // Host input setup: image and operations count.
     const int OUTPUT_SIZE = sizeof(char) * height * width * 3;
     char *h_output = (char*) malloc(OUTPUT_SIZE);
-    long int *h_operations = (long int*) malloc(sizeof(long int));
+    long long int *h_operations = (long long int*) calloc(1, sizeof(long long int));
 
+    // Device output setup: image and operations.
     char *d_output;
-    long int *d_operations;
-    cudaCheck(cudaMalloc(&d_operations, sizeof(long int)));
+    long long int *d_operations;
+    cudaCheck(cudaMalloc(&d_operations, sizeof(long long int)));
     cudaCheck(cudaMalloc(&d_output, OUTPUT_SIZE));
-    cudaCheck(cudaMemset(d_output, 0, OUTPUT_SIZE));
+    // cudaCheck(cudaMemset(d_operations, 0, OUTPUT_SIZE));
+
+    // Set operations to 0.
+    cudaCheck(cudaMemcpy(d_operations, h_operations, sizeof(long long int), cudaMemcpyHostToDevice));
     
+    // Kernel Size.
     dim3 gridSize(ceil(width / TILE_WIDTH), ceil(height / TILE_WIDTH), 1);
     dim3 blockSize(TILE_WIDTH, TILE_WIDTH, 1);
 
-    clock_t begin = clock();
+    // Begin timer.
+    //struct timespec tstart={0,0};
+    clock_t start = clock();
 
-    naiveMandelbrotSetsKernel<<<gridSize, blockSize, 0>>>(
+    // Launch Kernel.
+    naiveMandelbrotSetsKernel<<<gridSize, blockSize>>>(
         height, width, maxIterations, zoom, yPos, xPos, radius, d_output, d_operations); 
     cudaDeviceSynchronize();
 
-    
-    cudaCheck(cudaMemcpy(h_output, d_output, OUTPUT_SIZE, cudaMemcpyDeviceToHost));
-    
-    endClock(begin); // temporarily put this here -- really should be above!!!!! 
-    
-    cudaCheck(cudaMemcpy(h_operations, d_operations, sizeof(long int), cudaMemcpyDeviceToHost));
+    // Stop timer.
+    endClock(start);
+
+    // Copy output and operations.
+    cudaCheck(cudaMemcpy(h_output, d_output, OUTPUT_SIZE, cudaMemcpyDeviceToHost));    
+    cudaCheck(cudaMemcpy(h_operations, d_operations, sizeof(long long int), cudaMemcpyDeviceToHost));
+
+    // Free output and operations.
     cudaFree(d_output);
+    cudaFree(d_operations);
 
     fwrite(h_output, OUTPUT_SIZE, 1, fp);
     g_operations = *h_operations;
 
     free(h_output);
+    free(h_operations);
   }
   
   reportClock();

@@ -29,7 +29,10 @@
 void naiveMandelbrotSets(int y, int x, int height, int width, int maxIterations, 
 		const float zoom, const float yPos, const float xPos, const float radius, 
 		FILE *fp) {
-	clock_t begin = clock();
+  // Begin clock. 
+  // struct timespec tstart = {0,0};
+  clock_t start = clock();
+
 	double newRe, newIm, oldRe, oldIm, pr, pi;
 	// Naively iterate through each pixel.
 	for(y = 0; y < height; y++) {   // 3 Ops.
@@ -52,19 +55,16 @@ void naiveMandelbrotSets(int y, int x, int height, int width, int maxIterations,
 
 		 // If iteration limit is reached, fill black. Colored otherwise.
 		 if(i == maxIterations) {
-			 endClock(begin);
-			 g_operations += 43; 
 			 color(0, 0, 0, fp);
 		 }   
 		 else {
-			 endClock(begin);
-			 g_operations += 56; 
-
 			 double z = sqrt(newRe * newRe + newIm * newIm);
 			 int brightness = 256. * log2(1.75 + i - log2(log2(z))) / log2((double)maxIterations);
 			 color(brightness, brightness, 255, fp);
 		 }   
+     g_operations += 56; 
 	 }   
 	}
+  endClock(start);
 }
 

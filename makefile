@@ -18,11 +18,12 @@ FLAGS=-g -O4 -lm
 all: main 
 
 main: metrics.o common.o common.o naive.o cudaNaive.o main.cu # cudaDP.o
+	mkdir -p images
 	nvcc $(FLAGS) metrics.o common.o naive.o cudaNaive.o main.cu -o main
 	# ./main
 	./main 600 400 1000 cudaNaive images/cudaNaive.ppm 
 	# ./main 600 400 1000 cudaDP images/cudaDP.ppm 
-	xdg-open images/cudaNaive.ppm
+	# xdg-open images/cudaNaive.ppm
 
 cudaNaive.o: cudaNaive.cu metrics.o
 	nvcc $(FLAGS) metrics.o -c cudaNaive.cu
@@ -42,4 +43,5 @@ common.o: common.c
 clean:
 	find \( -name '*.out' -or -name '*.o' -or -name '*~' -or -name '*.ppm' \) -delete
 	rm main
+	rm -r images
 

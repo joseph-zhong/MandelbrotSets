@@ -63,7 +63,7 @@
   if (err != cudaSuccess) {                      \
     printf("\nERROR ERROR ERROR\n");             \
     printf("ERROR ERROR ERROR\n\n");             \
-    printf("\tFailed to run %s\n", "stmt");      \
+    printf("\tFailed to run %s\n", #stmt);      \
     printf("\nERROR ERROR ERROR\n");             \
     printf("ERROR ERROR ERROR\n");               \
     return EXIT_FAILURE;                         \

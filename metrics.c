@@ -21,13 +21,13 @@ double g_time_spent = 0.0;
 long long int g_operations = 0;
 
 void endClock(clock_t start) {
-  g_time_spent += (long double) (clock() - start) / CLOCKS_PER_SEC;
+  g_time_spent += (double) (clock() - start) / CLOCKS_PER_SEC;
 }
 
 void reportClock() {
   printf("Clock Report\n");
   printf("------------\n");
-  printf("\tTotal Time(in thousand clock ticks): %5.3f\n\n", g_time_spent / 1000);
+  printf("\tTotal Time: %0.3f seconds\n\n", g_time_spent);
 }
 
 void reportOperations() {
@@ -39,6 +39,6 @@ void reportOperations() {
 void reportFlops() {
   printf("Flops Report\n");
   printf("------------\n");
-  printf("\tFlops: %5.3f\n\n", ((double) g_operations / max(1.0, g_time_spent)));
+  printf("\tFlops: %0.3f\n\n", ((double) g_operations / max(0.000001, g_time_spent)));
 }
 

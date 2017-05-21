@@ -18,6 +18,6 @@
 
 __global__ void naiveMandelbrotSetsKernel(int height, int width, int maxIterations, 
      const float zoom, const float yPos, const float xPos, const float radius, 
-     char *d_output, long int *d_operations);
+     char *d_output, long long int *d_operations);
 
 #endif // CUDA_NAIVE_H
