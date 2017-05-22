@@ -9,12 +9,15 @@
 // defaults.h
 // ---
 
-#ifndef DEFAULTS_h
-
+#ifndef DEFAULTS_H
+#define DEFAULTS_H
 #include <stdbool.h>
 
 #define VERBOSE true
 #define KERNEL_VERBOSE true
+
+// Colors.
+#define CHANNELS 3
 
 // Default values for specifying size, iterations, and resolution.
 #define WIDTH_DEFAULT 600
@@ -25,7 +28,7 @@
 #define ZOOM_DEFAULT 1.0
 #define RADIUS_DEFAULT 4.0
 
-// CUDA Tile Sizes
+// CUDA Tile Sizes.
 #define TILE_WIDTH 16
 
 // Input kernels.
@@ -54,7 +57,6 @@
   }                                             \
 }         
 
-
 // This checks for a cudaError and exits the program 
 // with EXIT_FAILURE if an error was detected.
 #define cudaCheck(stmt)                          \
@@ -66,7 +68,7 @@
     printf("\tFailed to run %s\n", #stmt);      \
     printf("\nERROR ERROR ERROR\n");             \
     printf("ERROR ERROR ERROR\n");               \
-    return EXIT_FAILURE;                         \
+    exit(EXIT_FAILURE);                         \
   }                                              \
 } 
 

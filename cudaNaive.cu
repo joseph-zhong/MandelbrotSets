@@ -19,11 +19,60 @@
 #include <stdbool.h>
 #include <time.h>
 
+#include "cudaNaive.h"
 #include "common.h"
 #include "defaults.h"
 #include "metrics.h"
 
-__global__ void naiveMandelbrotSetsKernel(int height, int width, int maxIterations, 
+__host__ void cudaNaiveMandelbrotSets(int height, int width, int maxIterations, 
+    const float zoom, const float yPos, const float xPos, const float radius, FILE *fp) {
+	// Host input setup: image and operations count.
+	const int OUTPUT_SIZE = sizeof(char) * height * width * 3;
+	char *h_output = (char*) malloc(OUTPUT_SIZE);
+	long long int *h_operations = (long long int*) calloc(1, sizeof(long long int));
+
+	// Device output setup: image and operations.
+	char *d_output;
+	long long int *d_operations;
+	cudaCheck(cudaMalloc(&d_operations, sizeof(long long int)));
+	cudaCheck(cudaMalloc(&d_output, OUTPUT_SIZE));
+
+	// Set operations to 0.
+	// BUGBUG josephz: The number of operations from run to run is consistent and
+  // about a factor of 50x lower than expected.
+	cudaCheck(cudaMemcpy(d_operations, h_operations, sizeof(long long int), cudaMemcpyHostToDevice));
+		 
+	// Kernel Size.
+	dim3 gridSize(ceil(width / TILE_WIDTH), ceil(height / TILE_WIDTH), 1); 
+	dim3 blockSize(TILE_WIDTH, TILE_WIDTH, 1); 
+
+	// Begin timer.
+	clock_t start = clock();
+
+	// Launch Kernel.
+	cudaNaiveMandelbrotSetsKernel<<<gridSize, blockSize>>>(
+		 height, width, maxIterations, zoom, yPos, xPos, radius, d_output, d_operations); 
+	cudaDeviceSynchronize();
+
+	// Stop timer.
+	endClock(start);
+
+	// Copy output and operations.
+	cudaCheck(cudaMemcpy(h_output, d_output, OUTPUT_SIZE, cudaMemcpyDeviceToHost));        
+	cudaCheck(cudaMemcpy(h_operations, d_operations, sizeof(long long int), cudaMemcpyDeviceToHost));
+
+	// Free output and operations.
+	cudaFree(d_output);
+	cudaFree(d_operations);
+
+	fwrite(h_output, OUTPUT_SIZE, 1, fp);
+	g_operations = *h_operations;
+
+	free(h_output);
+	free(h_operations);
+}
+
+__global__ void cudaNaiveMandelbrotSetsKernel(int height, int width, int maxIterations, 
      const float zoom, const float yPos, const float xPos, const float radius, 
      char *d_output, long long int *d_operations) {
   double newRe, newIm, oldRe, oldIm, pr, pi; 
@@ -32,6 +81,8 @@ __global__ void naiveMandelbrotSetsKernel(int height, int width, int maxIteratio
   int y = threadIdx.y + blockDim.y * blockIdx.y;
   int x = threadIdx.x + blockDim.x * blockIdx.x;
   
+  // BUGBUG josephz: A column of pixels on the right hand side seems to have
+  // been lost, either as a black bar, or distorted white and black noise.
   if (x >= width || y >= height) return;
   
   int output_index = 3 * width * y + x * 3;

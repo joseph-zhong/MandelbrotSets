@@ -26,7 +26,7 @@
 #include "defaults.h"
 #include "metrics.h"
 
-void naiveMandelbrotSets(int y, int x, int height, int width, int maxIterations, 
+void naiveMandelbrotSets(int height, int width, int maxIterations, 
 		const float zoom, const float yPos, const float xPos, const float radius, 
 		FILE *fp) {
   // Begin clock. 
@@ -35,8 +35,8 @@ void naiveMandelbrotSets(int y, int x, int height, int width, int maxIterations,
 
 	double newRe, newIm, oldRe, oldIm, pr, pi;
 	// Naively iterate through each pixel.
-	for(y = 0; y < height; y++) {   // 3 Ops.
-	 for(x = 0; x < width; x++) {  // 3 Ops.
+	for(int y = 0; y < height; y++) {   // 3 Ops.
+	 for(int x = 0; x < width; x++) {  // 3 Ops.
 		 // Calculate Z from the pixel location, zoom, and position values.
 		 pr = 1.5 * (x - width / 2) / (0.5 * zoom * width) + xPos; // 8 Ops.
 		 pi = (y - height / 2) / (0.5 * zoom * height) + yPos;     // 7 Ops.
