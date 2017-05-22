@@ -18,9 +18,9 @@ NVCC_FLAGS=-arch=sm_35 -rdc=true -lcudadevrt -Xcompiler -fopenmp
 
 all: main 
 
-main: metrics.o common.o naive.o cudaNaive.o cudaDP.o main.cu 
+main: metrics.o common.o cudaCommon.o naive.o cudaNaive.o cudaDP.o main.cu 
 	mkdir -p images
-	nvcc $(FLAGS) $(NVCC_FLAGS) metrics.o common.o naive.o cudaNaive.o main2.cu -o main
+	nvcc $(FLAGS) $(NVCC_FLAGS) metrics.o common.o cudaCommon.o naive.o cudaNaive.o cudaDP.o main2.cu -o main
 	# ./main
 	# ./main 600 400 1000 cudaNaive images/cudaNaive.ppm 
 	./main 600 400 1000 cudaDP images/cudaDP.ppm 
@@ -48,4 +48,7 @@ clean:
 	find \( -name '*.out' -or -name '*.o' -or -name '*~' -or -name '*.ppm' \) -delete
 	rm main
 	rm -r images
+
+run:
+	./main 600 400 1000 cudaDP images/cudaDP.ppm
 
