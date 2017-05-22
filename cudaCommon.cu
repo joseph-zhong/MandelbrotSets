@@ -12,6 +12,8 @@
 //  Common CUDA C code.
 //
 
+#include <png.h>
+
 #include "cudaCommon.h"
 
 // This computes ceil(x / y).
@@ -40,3 +42,4 @@ __device__ int calculatePixelValue(int width, int height, int maxIterations,
 __host__ __device__ int divup(int x, int y) { 
   return x / y + (x % y ? 1 : 0); 
 }
+

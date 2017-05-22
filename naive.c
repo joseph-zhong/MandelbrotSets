@@ -28,9 +28,11 @@
 
 void naiveMandelbrotSets(int height, int width, int maxIterations, 
 		const float zoom, const float yPos, const float xPos, const float radius, 
-		FILE *fp) {
+		const char *filename) {
+  
+  int *h_output = (int*) malloc(sizeof(int) * height * width);
+
   // Begin clock. 
-  // struct timespec tstart = {0,0};
   clock_t start = clock();
 
 	double newRe, newIm, oldRe, oldIm, pr, pi;
@@ -55,16 +57,17 @@ void naiveMandelbrotSets(int height, int width, int maxIterations,
 
 		 // If iteration limit is reached, fill black. Colored otherwise.
 		 if(i == maxIterations) {
-			 color(0, 0, 0, fp);
+       h_output[y * width + x] = 0;
 		 }   
 		 else {
-			 double z = sqrt(newRe * newRe + newIm * newIm);
-			 int brightness = 256. * log2(1.75 + i - log2(log2(z))) / log2((double)maxIterations);
-			 color(brightness, brightness, 255, fp);
+			 // double z = sqrt(newRe * newRe + newIm * newIm);
+			 // int brightness = 256. * log2(1.75 + i - log2(log2(z))) / log2((double)maxIterations);
+       h_output[y * width + x] = i;
 		 }   
      g_operations += 56; 
 	 }   
 	}
   endClock(start);
+  save_image(filename, h_output, width, height, maxIterations);
 }
 

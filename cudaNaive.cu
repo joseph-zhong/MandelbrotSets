@@ -21,18 +21,19 @@
 
 #include "cudaNaive.h"
 #include "common.h"
+#include "cudaCommon.h"
 #include "defaults.h"
 #include "metrics.h"
 
 __host__ void cudaNaiveMandelbrotSets(int height, int width, int maxIterations, 
-    const float zoom, const float yPos, const float xPos, const float radius, FILE *fp) {
+    const float zoom, const float yPos, const float xPos, const float radius, const char *filename) {
 	// Host input setup: image and operations count.
-	const int OUTPUT_SIZE = sizeof(char) * height * width * 3;
-	char *h_output = (char*) malloc(OUTPUT_SIZE);
+	const int OUTPUT_SIZE = sizeof(int) * height * width;
+	int *h_output = (int*) malloc(OUTPUT_SIZE);
 	long long int *h_operations = (long long int*) calloc(1, sizeof(long long int));
 
 	// Device output setup: image and operations.
-	char *d_output;
+	int *d_output;
 	long long int *d_operations;
 	cudaCheck(cudaMalloc(&d_operations, sizeof(long long int)));
 	cudaCheck(cudaMalloc(&d_output, OUTPUT_SIZE));
@@ -65,7 +66,9 @@ __host__ void cudaNaiveMandelbrotSets(int height, int width, int maxIterations,
 	cudaFree(d_output);
 	cudaFree(d_operations);
 
-	fwrite(h_output, OUTPUT_SIZE, 1, fp);
+  // Write to output.
+	//fwrite(h_output, OUTPUT_SIZE, 1, fp);
+  save_image(filename, h_output, width, height, maxIterations);
 	g_operations = *h_operations;
 
 	free(h_output);
@@ -74,7 +77,7 @@ __host__ void cudaNaiveMandelbrotSets(int height, int width, int maxIterations,
 
 __global__ void cudaNaiveMandelbrotSetsKernel(int height, int width, int maxIterations, 
      const float zoom, const float yPos, const float xPos, const float radius, 
-     char *d_output, long long int *d_operations) {
+     int *d_output, long long int *d_operations) {
   double newRe, newIm, oldRe, oldIm, pr, pi; 
   
   // Naively iterate through each pixel.
@@ -84,9 +87,7 @@ __global__ void cudaNaiveMandelbrotSetsKernel(int height, int width, int maxIter
   // BUGBUG josephz: A column of pixels on the right hand side seems to have
   // been lost, either as a black bar, or distorted white and black noise.
   if (x >= width || y >= height) return;
-  
-  int output_index = 3 * width * y + x * 3;
-    
+   
   // Calculate Z from the pixel location, zoom, and position values.
   pr = 1.5 * (x - width / 2) / (0.5 * zoom * width) + xPos; // 8 Ops.
   pi = (y - height / 2) / (0.5 * zoom * height) + yPos;     // 7 Ops.
@@ -104,17 +105,14 @@ __global__ void cudaNaiveMandelbrotSetsKernel(int height, int width, int maxIter
   // 43 Ops.  
 
   // If iteration limit is reached, fill black. Colored otherwise.
+  int output_index = width * y + x;
   if(i == maxIterations) {
-    d_output[output_index] = (char) 0;
-    d_output[output_index + 1] = (char) 0;
-    d_output[output_index + 2] = (char) 0;
+    d_output[output_index] = 0;
   }   
   else {
     double z = sqrt(newRe * newRe + newIm * newIm);
     int brightness = 256.0 * log2(1.75 + i - log2(log2(z))) / log2((double)maxIterations);
-    d_output[output_index] = (char) brightness;
-    d_output[output_index + 1] = (char) brightness;
-    d_output[output_index + 2] = (char) 255;
+    d_output[output_index] = brightness;
   }
   *d_operations += 56;
 }

@@ -33,7 +33,6 @@ int main(int argc, char *argv[]) {
   int maxIterations;
   char *kernel;
   char *filename;
-  FILE *fp;
 
   parseArgs(argc, argv, &width, &height, &maxIterations, &kernel, &filename);
 
@@ -44,9 +43,6 @@ int main(int argc, char *argv[]) {
         width, height, maxIterations, kernel, filename);
   }
 
-  // Set filename for output image.
-  fp = fopen(filename, "wb");
-
   // REVIEW josephz: These could be cmdline arguments but in order to
   // standardize the experiments, we will keep these constant for now.
   const float zoom = ZOOM_DEFAULT;
@@ -54,25 +50,21 @@ int main(int argc, char *argv[]) {
   const float yPos = Y_POS_DEFAULT;
   const float radius = RADIUS_DEFAULT;
 
-  // Write header to ppm file.
-  fprintf(fp, "P6\n# Mandelbrot Set. \n%d %d\n255\n", width, height);
-
   if (strcmp(kernel, NAIVE_HOST) == 0) {
     if (VERBOSE) {
       printf("[main] Running NAIVE_HOST\n\n");
     }
-    naiveMandelbrotSets(height, width, maxIterations, zoom, yPos, xPos, radius, fp);
+    naiveMandelbrotSets(height, width, maxIterations, zoom, yPos, xPos, radius, filename);
   }
   if (strcmp(kernel, CUDA_NAIVE) == 0) {
     cudaNaiveMandelbrotSets(height, width, maxIterations, 
-        zoom, yPos, xPos, radius, fp);
+        zoom, yPos, xPos, radius, filename);
   }
   if (strcmp(kernel, CUDA_DP) == 0) {
     cudaDPMandelbrotSets(height, width, maxIterations, 
-        zoom, yPos, xPos, radius, fp);
+        zoom, yPos, xPos, radius, filename);
   }
-  
-  
+
   reportClock();
   reportOperations();
   reportFlops();

@@ -17,10 +17,10 @@
 #define CUDA_NAIVE_H
 
 __host__ void cudaNaiveMandelbrotSets(int height, int width, int maxIterations, 
-        const float zoom, const float yPos, const float xPos, const float radius, FILE *fp);
+        const float zoom, const float yPos, const float xPos, const float radius, const char *filename);
 
 __global__ void cudaNaiveMandelbrotSetsKernel(int height, int width, int maxIterations, 
      const float zoom, const float yPos, const float xPos, const float radius, 
-     char *d_output, long long int *d_operations);
+     int *d_output, long long int *d_operations);
 
 #endif // CUDA_NAIVE_H

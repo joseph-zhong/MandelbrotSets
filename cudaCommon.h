@@ -15,6 +15,32 @@
 #ifndef CUDA_COMMON_H
 #define CUDA_COMMON_H
 
+
+// This checks for a cudaError and exits the program 
+// with EXIT_FAILURE if an error was detected.
+#define cudaCheck(stmt)                          \
+{                                                \
+  cudaError_t err = stmt;                        \
+  if (err != cudaSuccess) {                      \
+    printf("\nERROR ERROR ERROR\n");             \
+    printf("ERROR ERROR ERROR\n\n");             \
+    printf("\tFailed to run %s\n", #stmt);       \
+    gpuAssert((err), __FILE__, __LINE__);        \
+    printf("\nERROR ERROR ERROR\n");             \
+    printf("ERROR ERROR ERROR\n");               \
+    exit(EXIT_FAILURE);                          \
+  }                                              \
+} 
+
+inline void gpuAssert(cudaError_t code, const char *file, int line)
+{
+   if (code != cudaSuccess)
+   {
+      printf("[gpuAssert]: *** %s %s %d\n", cudaGetErrorString(code), file, line);
+   }
+}
+
+
 // Struct representing complex number.
 struct complexNum {
   __host__ __device__ complexNum(float a, float bi=0) {
@@ -67,7 +93,6 @@ inline __host__ __device__ complexNum operator/
 
  // This computes ceil(x / y).
  __host__ __device__ int divup(int x, int y); 
-
 
 #endif // CUDA_COMMON_H
 

@@ -28,7 +28,7 @@
 
 __host__ void cudaDPMandelbrotSets(int height, int width, int maxIterations, 
     const float zoom, const float yPos, const float xPos, const float radius, 
-    FILE *fp) {
+    const char *filename) {
   const int OUTPUT_SIZE = height * width * sizeof(int);
   int *h_output = (int*) malloc(OUTPUT_SIZE);
   long long int *h_operations = (long long int*) calloc(1, sizeof(long long int));
@@ -60,7 +60,7 @@ __host__ void cudaDPMandelbrotSets(int height, int width, int maxIterations,
  
 	// Write output and operations.
   // fwrite(h_output, OUTPUT_SIZE, 1, fp);
-  save_image("TESTcudaDP.png", h_output, width, height, maxIterations);
+  save_image(filename, h_output, width, height, maxIterations);
   g_operations = *h_operations;
  
   free(h_output);
@@ -147,7 +147,6 @@ __global__ void cudaDPMandelbrotSetsKernel(int height, int width, int maxIterati
   y0 += size * blockIdx.y;
 
   int borderVal = calculateBorder(width, height, maxIterations, cMin, cMax, x0, y0, size, radius); 
-  // int borderVal = border_dwell(width, height, cMin, cMax, x0, y0, size);
 
   if(threadIdx.x == 0 && threadIdx.y == 0) {
     if (borderVal != -1) {
@@ -169,79 +168,4 @@ __global__ void cudaDPMandelbrotSetsKernel(int height, int width, int maxIterati
     }
   }
 }
-
-void save_image(const char *filename, int *dwells, int w, int h, int maxIterations) {
-	png_bytep row;
-	
-	FILE *fp = fopen(filename, "wb");
-	png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
-	png_infop info_ptr = png_create_info_struct(png_ptr);
-	// exception handling
-	setjmp(png_jmpbuf(png_ptr));
-	png_init_io(png_ptr, fp);
-	// write header (8 bit colour depth)
-	png_set_IHDR(png_ptr, info_ptr, w, h,
-							 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
-							 PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-	// set title
-	png_text title_text;
-	title_text.compression = PNG_TEXT_COMPRESSION_NONE;
-	title_text.key = "Title";
-	title_text.text = "Mandelbrot set, per-pixel";
-	png_set_text(png_ptr, info_ptr, &title_text, 1);
-	png_write_info(png_ptr, info_ptr);
-
-	// write image data
-	row = (png_bytep) malloc(3 * w * sizeof(png_byte));
-	for (int y = 0; y < h; y++) {
-		for (int x = 0; x < w; x++) {
-			int r, g, b;
-			dwell_color(&r, &g, &b, dwells[y * w + x], maxIterations);
-			row[3 * x + 0] = (png_byte)r;
-			row[3 * x + 1] = (png_byte)g;
-			row[3 * x + 2] = (png_byte)b;
-		}
-		png_write_row(png_ptr, row);
-	}
-	png_write_end(png_ptr, NULL);
-
-  fclose(fp);
-  png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
-  png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-  free(row);
-}  // save_image
-
-
-/** gets the color, given the dwell (on host) */
-void dwell_color(int *r, int *g, int *b, int dwell, int maxIterations) {
-  int CUT_DWELL = maxIterations / DIVIDE_FACTOR;
-	// black for the Mandelbrot set
-	if(dwell >= maxIterations) {
-		*r = *g = *b = 0;
-	} else {
-		// cut at zero
-		if(dwell < 0)
-			dwell = 0;
-		if(dwell <= CUT_DWELL) {
-			// from black to blue the first half
-			*r = *g = 0;
-			*b = 128 + dwell * 127 / (CUT_DWELL);
-		} else {
-			// from blue to white for the second half
-			*b = 255;
-			*r = *g = (dwell - CUT_DWELL) * 255 / (maxIterations - CUT_DWELL);
-		}
-	}
-}  // dwell_color
-
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort)
-{
-   if (code != cudaSuccess) 
-   {
-      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-      if (abort) exit(code);
-   }
-}
-
 

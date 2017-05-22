@@ -37,14 +37,14 @@
 #define CUDA_DP "cudaDP"
 
 // Default output values.
-#define OUT_DEFAULT "images/out.ppm"
-#define NAIVE_OUT_DEFAULT "images/naive.ppm"
-#define CUDA_NAIVE_OUT_DEFAULT "images/cudaNaive.ppm"
-#define CUDA_DP_OUT_DEFAULT "images/cudaDP.ppm"
+#define OUT_DEFAULT "images/out.png"
+#define NAIVE_OUT_DEFAULT "images/naive.png"
+#define CUDA_NAIVE_OUT_DEFAULT "images/cudaNaive.png"
+#define CUDA_DP_OUT_DEFAULT "images/cudaDP.png"
 
 // Usage and example.
 #define USAGE "Usage:   \n\t%s <width> <height> <maxiter> <kernel> <output> \n"
-#define EXAMPLE "Example: \n\t%s 600 400 1000 naive images/out.ppm\n\n" 
+#define EXAMPLE "Example: \n\t%s 600 400 1000 naive images/out.png\n\n" 
 
 // This is a debugging print statement which 
 // prints if VERBOSE is set to true.
@@ -57,20 +57,6 @@
   }                                             \
 }         
 
-// This checks for a cudaError and exits the program 
-// with EXIT_FAILURE if an error was detected.
-#define cudaCheck(stmt)                          \
-{                                                \
-  cudaError_t err = stmt;                        \
-  if (err != cudaSuccess) {                      \
-    printf("\nERROR ERROR ERROR\n");             \
-    printf("ERROR ERROR ERROR\n\n");             \
-    printf("\tFailed to run %s\n", #stmt);      \
-    printf("\nERROR ERROR ERROR\n");             \
-    printf("ERROR ERROR ERROR\n");               \
-    exit(EXIT_FAILURE);                         \
-  }                                              \
-} 
 
 #endif // DEFAULTS_H
 

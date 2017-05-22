@@ -21,6 +21,6 @@
 // Naive Mandelbrot Set implementation in C. 
 void naiveMandelbrotSets(int height, int width, int maxIterations, 
 		const float zoom, const float yPos, const float xPos, const float radius, 
-		FILE *fp);
+		const char *filename);
 
 #endif // NAIVE_H
