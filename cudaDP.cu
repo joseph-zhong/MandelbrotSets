@@ -52,11 +52,6 @@ __host__ void cudaDPMandelbrotSets(int height, int width, int maxIterations,
   cudaDPMandelbrotSetsKernel<<<gridSize, blockSize>>>(height, width, maxIterations,
       complexNum(-1.5, -1), complexNum(0.5, 1), 0, 0, width / MIN_SIZE, 1, radius,
       d_output, d_operations);
-  
-  
-  // mandelbrot_block_k<<<gridSize, blockSize>>>(d_output, width, height, 
-  //   complex(-1.5, -1), 
-  //   complex(0.5, 1), 0, 0, width / MIN_SIZE, 1);
   cudaCheck(cudaThreadSynchronize());
   
   endClock(start);
@@ -75,34 +70,6 @@ __host__ void cudaDPMandelbrotSets(int height, int width, int maxIterations,
  
   free(h_output);
   free(h_operations);
-
-
-////////////////////////
-
-	// gpuErrchk(cudaMalloc(&d_output, w * h * sizeof(int)));
-	// h_dwells = (int*)malloc(dwell_sz);
-
-	// // compute the dwells, copy them back
-	// // double t1 = omp_get_wtime();
-	// dim3 bs(BSX, BSY), grid(INIT_SUBDIV, INIT_SUBDIV);
-	// mandelbrot_block_k<<<grid, bs>>>
-	// 	(d_dwells, w, h, complex(-1.5, -1), complex(0.5, 1), 0, 0, W / INIT_SUBDIV, 1);
-	// cudaCheck(cudaThreadSynchronize());
-	// // double t2 = omp_get_wtime();
-	// cudaCheck(cudaMemcpy(h_dwells, d_dwells, dwell_sz, cudaMemcpyDeviceToHost));
-	// // gpu_time = t2 - t1;
-	
-	// // save the image to PNG file
-	// save_image(IMAGE_PATH, h_dwells, w, h);
-
-	// // print performance
-	// // printf("Mandelbrot set computed in %.3lf s, at %.3lf Mpix/s\n", gpu_time, 
-	// 			//  h * w * 1e-6 / gpu_time);
-
-	// // free data
-	// cudaFree(d_dwells);
-	// free(h_dwells);
-
 }
 
 
@@ -123,11 +90,12 @@ __device__ int calculateBorder(int width, int height, int maxIterations,
   int tIdx = threadIdx.y * blockDim.x + threadIdx.x;
   int blockSize = blockDim.x * blockDim.y;
   int value = maxIterations + 1;
+  // int value = NEUT_DWELL;
   for (int pixel = tIdx; pixel < size; pixel += blockSize) {
-    for (int boundary = 0; boundary < 4; ++boundary) {
+    for (int boundary = 0; boundary < 4; boundary++) {
       int x = boundary % 2 != 0 ? x0 + pixel : (boundary == 0 ? x0 + size - 1 : x0); 
       int y = boundary % 2 == 0 ? y0 + pixel : (boundary == 1 ? y0 + size - 1 : y0);
-      value = calculatePixelValue(width, height, maxIterations, cMin, cMax, x, y, radius); 
+      value = commonValue(value, calculatePixelValue(width, height, maxIterations, cMin, cMax, x, y, radius), maxIterations);
     }
   }
 
@@ -138,12 +106,12 @@ __device__ int calculateBorder(int width, int height, int maxIterations,
   }
   __syncthreads();
 
-  while (numThreads > 1) {
+  // while (numThreads > 1) {
+  for(; numThreads > 1; numThreads /= 2) {
     if (tIdx < numThreads / 2) {
       s_output[tIdx] = commonValue(s_output[tIdx], s_output[tIdx + numThreads / 2], maxIterations);
     }
     __syncthreads();
-    numThreads /= 2;
   }
   return s_output[0];
 }
@@ -186,56 +154,34 @@ __global__ void cudaDPMandelbrotSetsKernel(int height, int width, int maxIterati
 
   x0 += size * blockIdx.x;
   y0 += size * blockIdx.y;
-  int comm_dwell = border_dwell(width, height, cMin, cMax, x0, y0, size);
+
+  int borderVal = calculateBorder(width, height, maxIterations, cMin, cMax, x0, y0, size, radius); 
+  // int borderVal = border_dwell(width, height, cMin, cMax, x0, y0, size);
+
   if(threadIdx.x == 0 && threadIdx.y == 0) {
-    if(comm_dwell != DIFF_DWELL) {
-      // uniform dwell, just fill
-      dim3 bs(BSX, BSY), grid(divup(size, BSX), divup(size, BSY));
-      dwell_fill_k<<<grid, bs>>>(d_output, width, x0, y0, size, comm_dwell);
-    } else if(depth + 1 < MAX_DEPTH && size / SUBDIV > MIN_SIZE) {
-      // subdivide recursively
-      dim3 bs(blockDim.x, blockDim.y), grid(SUBDIV, SUBDIV);
-      mandelbrot_block_k<<<grid, bs>>>
-        (d_output, width, height, cMin, cMax, x0, y0, size / SUBDIV, depth	+ 1);
-    } else {
-      // leaf, per-pixel kernel
-      dim3 bs(BSX, BSY), grid(divup(size, BSX), divup(size, BSY));
-      mandelbrot_pixel_k<<<grid, bs>>>
-        (d_output, width, height, cMin, cMax, x0, y0, size);
+    if (borderVal != -1) {
+      dim3 fillBlockSize(64, 4);
+      dim3 fillGridSize(divup(size, 64), divup(size, 4));
+      fillKernel<<<fillGridSize, fillBlockSize>>>(width, x0, y0, size, borderVal, d_output);
+      //dwell_fill_k<<<fillGridSize, fillBlockSize>>>(d_output, width, x0, y0, size, borderVal);
     }
-    // cucheck_dev(cudaGetLastError());
-    //check_error(x0, y0, d);
+    else if (depth + 1 < MAX_DEPTH && size / 4 > MIN_SIZE) {
+      dim3 recurseGridSize(4, 4);
+      dim3 recurseBlockSize(blockDim.x, blockDim.y);
+      cudaDPMandelbrotSetsKernel<<<recurseGridSize, recurseBlockSize>>>(height, width, maxIterations, 
+          cMin, cMax, x0, y0, size / 4, depth + 1, radius, d_output, d_operations); 
+      // mandelbrot_block_k<<<recurseGridSize, recurseBlockSize>>>
+      //  (d_output, width, height, cMin, cMax, x0, y0, size / SUBDIV, depth	+ 1);
+    }
+    else {
+      dim3 pixelGridSize(divup(size, 64), divup(size, 4));
+      dim3 pixelBlockSize(64, 4);
+      pixelKernel<<<pixelGridSize, pixelBlockSize>>>(width, height, maxIterations,
+           cMin, cMax, x0, y0, size, radius, d_output);
+      // mandelbrot_pixel_k<<<pixelGridSize, pixelBlockSize>>>
+      //   (d_output, width, height, cMin, cMax, x0, y0, size);
+    }
   }
-
-  // x0 += size * blockIdx.x;
-  // y0 += size * blockIdx.y;
-
-  // // Compute border values. 
-  // // By the Mariani-Silver Algorithm, we know that we can fill the border's
-  // // box with the border values if they all match. Otherwise, we can split the
-  // // box into smaller rectangles and recurse. 
-  // int borderVal = calculateBorder(width, height, maxIterations, cMin, cMax, x0, y0, size, radius); 
-
-  // if (threadIdx.x == 0 && threadIdx.y == 0) {
-  //   if (borderVal != -1) {
-  //     dim3 fillBlockSize(64, 4);
-  //     dim3 fillGridSize(divup(size, 64), divup(size, 4));
-  //     fillKernel<<<fillGridSize, fillBlockSize>>>(width, height, x0, y0, size, d_output);
-  //   }
-  //   else if (depth + 1 < MAX_DEPTH && size / 4 > MIN_SIZE) {
-  //     dim3 recurseGridSize(4, 4);
-  //     dim3 recurseBlockSize(blockDim.x, blockDim.y);
-  //     cudaDPMandelbrotSetsKernel<<<recurseGridSize, recurseBlockSize>>>(height, width, maxIterations, 
-  //         cMin, cMax, x0, y0, size / 4, depth + 1, radius, d_output, d_operations); 
-  //   }
-  //   else {
-  //     dim3 pixelGridSize(divup(size, 64), divup(size, 4));
-  //     dim3 pixelBlockSize(64, 4);
-  //     pixelKernel<<<pixelGridSize, pixelBlockSize>>>(width, height, maxIterations,
-  //         cMin, cMax, x0, y0, size, radius, d_output);
-  //   }
-  //   // cudaCheck(cudaGetLastError());
-  // }
 }
 
 

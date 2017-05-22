@@ -17,7 +17,7 @@
 // This computes ceil(x / y).
 __host__ __device__ int divup(int x, int y);
 
-__device__ char calculatePixelValue(int width, int height, int maxIterations,
+__device__ int calculatePixelValue(int width, int height, int maxIterations,
     complexNum cMin, complexNum cMax, int x, int y, 
     const float radius) {
   
@@ -30,10 +30,11 @@ __device__ char calculatePixelValue(int width, int height, int maxIterations,
 
   int iterations = 0;
   complexNum z = c;
-  while (iterations++ < maxIterations && absSquared(z) < radius) {
+  while (iterations < maxIterations && absSquared(z) < radius) {
     z = z * z + c;
+    iterations++;
   }
-  return (char) iterations;
+  return iterations;
 }
 
 __host__ __device__ int divup(int x, int y) { 

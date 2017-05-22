@@ -45,7 +45,7 @@ inline __host__ __device__ float abs2(const complex &a);
 inline __host__ __device__ complex operator/
 (const complex &a, const complex &b);
 
-#define MAX_DWELL 512
+#define MAX_DWELL 1000
 
 /** block size along */
 #define BSX 64
