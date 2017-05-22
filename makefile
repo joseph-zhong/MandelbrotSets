@@ -20,10 +20,10 @@ all: main
 
 main: metrics.o common.o cudaCommon.o naive.o cudaNaive.o cudaDP.o main.cu 
 	mkdir -p images
-	nvcc $(FLAGS) $(NVCC_FLAGS) metrics.o common.o cudaCommon.o naive.o cudaNaive.o cudaDP.o main2.cu -o main
+	nvcc $(FLAGS) $(NVCC_FLAGS) metrics.o common.o cudaCommon.o naive.o cudaNaive.o cudaDP.o main.cu -o main
 	# ./main
 	# ./main 600 400 1000 cudaNaive images/cudaNaive.ppm 
-	./main 600 400 1000 cudaDP images/cudaDP.ppm 
+	./main 1024 1024 512 cudaDP images/cudaDP.ppm 
 	# xdg-open images/cudaNaive.ppm
 
 cudaNaive.o: cudaNaive.cu metrics.o
@@ -51,5 +51,5 @@ clean:
 	rm *.png
 
 run:
-	./main 600 400 1000 cudaDP images/cudaDP.ppm
+	./main 1024 1024 512 cudaDP images/cudaDP.ppm
 
