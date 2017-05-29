@@ -28,8 +28,8 @@ cudaNaive.o: cudaNaive.cu metrics.o
 cudaDP.o: cudaDP.cu cudaCommon.o common.o metrics.o
 	nvcc $(FLAGS)  $(NVCC_FLAGS) cudaCommon.o common.o metrics.o -c cudaDP.cu
 
-naive.o: naive.c metrics.o common.o
-	g++ $(FLAGS) metrics.o common.o -c naive.c
+naive.o: naive.cu metrics.o common.o
+	nvcc $(FLAGS) $(NVCC_FLAGS) metrics.o common.o -c naive.cu
 
 metrics.o: metrics.c
 	g++ $(FLAGS) -c metrics.c 
@@ -47,7 +47,7 @@ clean:
 	rm *.png
 
 run:
-	./main
+	./main 1024 1024 512 naive images/naive.png
 	./main 1024 1024 512 cudaNaive images/cudaNaive.png 
 	./main 1024 1024 512 cudaDP images/cudaDP.png
 	xdg-open images/cudaNaive.png

@@ -54,11 +54,13 @@ int main(int argc, char *argv[]) {
     if (VERBOSE) {
       printf("[main] Running NAIVE_HOST\n\n");
     }
-    naiveMandelbrotSets(height, width, maxIterations, zoom, yPos, xPos, radius, filename);
+    naiveMandelbrotSets(height, width, maxIterations, radius, 
+        complexNum(-1.5, -1), complexNum(0.5, 1), filename);
   }
   if (strcmp(kernel, CUDA_NAIVE) == 0) {
-    cudaNaiveMandelbrotSets(height, width, maxIterations, 
-        zoom, yPos, xPos, radius, filename);
+    // cudaNaiveMandelbrotSets(height, width, maxIterations, 
+    //     zoom, yPos, xPos, radius, filename);
+   cudaNaiveMandelbrotSets(height, width, maxIterations, radius, filename);
   }
   if (strcmp(kernel, CUDA_DP) == 0) {
     cudaDPMandelbrotSets(height, width, maxIterations, 

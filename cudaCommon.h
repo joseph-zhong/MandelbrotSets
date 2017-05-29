@@ -89,7 +89,7 @@ inline __host__ __device__ complexNum operator/
 }  
 
  // This computes the pixel value using the Escape Time algorithm.
- __device__ int calculatePixelValue(int width, int height, int maxIterations, complexNum cMin, complexNum cMax, int x, int y, const float radius);
+__host__  __device__ int calculatePixelValue(int width, int height, int maxIterations, complexNum cMin, complexNum cMax, int x, int y, const float radius);
 
  // This computes ceil(x / y).
  __host__ __device__ int divup(int x, int y); 
