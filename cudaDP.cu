@@ -22,13 +22,11 @@
 
 #include "cudaDP.h"
 #include "common.h"
-#include "cudaCommon.h"
 #include "defaults.h"
 #include "metrics.h"
 
 __host__ void cudaDPMandelbrotSets(int height, int width, int maxIterations, 
-    const float zoom, const float yPos, const float xPos, const float radius, 
-    const char *filename) {
+    const float radius, const complexNum cMin, const complexNum cMax, const char *filename) {
   const int OUTPUT_SIZE = height * width * sizeof(int);
   int *h_output = (int*) malloc(OUTPUT_SIZE);
   long long int *h_operations = (long long int*) calloc(1, sizeof(long long int));
@@ -45,7 +43,7 @@ __host__ void cudaDPMandelbrotSets(int height, int width, int maxIterations,
   clock_t start = clock();
 
   cudaDPMandelbrotSetsKernel<<<gridSize, blockSize>>>(height, width, maxIterations,
-      complexNum(-1.5, -1), complexNum(0.5, 1), 0, 0, width / MIN_SIZE, 1, radius,
+      cMin, cMax, X_POS_DEFAULT, Y_POS_DEFAULT, width / MIN_SIZE, 1, radius,
       d_output, d_operations);
   cudaCheck(cudaThreadSynchronize());
   
@@ -59,7 +57,6 @@ __host__ void cudaDPMandelbrotSets(int height, int width, int maxIterations,
   cudaFree(d_operations);
  
 	// Write output and operations.
-  // fwrite(h_output, OUTPUT_SIZE, 1, fp);
   save_image(filename, h_output, width, height, maxIterations);
   g_operations = *h_operations;
  

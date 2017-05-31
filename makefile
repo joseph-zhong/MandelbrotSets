@@ -18,15 +18,15 @@ NVCC_FLAGS=-arch=sm_35 -rdc=true -lcudadevrt -Xcompiler -fopenmp
 
 all: main 
 
-main: metrics.o common.o cudaCommon.o naive.o cudaNaive.o cudaDP.o main.cu 
-	mkdir -p images
-	nvcc $(FLAGS) $(NVCC_FLAGS) metrics.o common.o cudaCommon.o naive.o cudaNaive.o cudaDP.o main.cu -o main
+main: metrics.o common.o naive.o cudaNaive.o cudaDP.o main.cu 
+	mkdir -p output
+	nvcc $(FLAGS) $(NVCC_FLAGS) metrics.o common.o naive.o cudaNaive.o cudaDP.o main.cu -o main
 	
 cudaNaive.o: cudaNaive.cu metrics.o
 	nvcc $(FLAGS)  $(NVCC_FLAGS) metrics.o -c cudaNaive.cu
 
-cudaDP.o: cudaDP.cu cudaCommon.o common.o metrics.o
-	nvcc $(FLAGS)  $(NVCC_FLAGS) cudaCommon.o common.o metrics.o -c cudaDP.cu
+cudaDP.o: cudaDP.cu common.o metrics.o
+	nvcc $(FLAGS)  $(NVCC_FLAGS) common.o metrics.o -c cudaDP.cu
 
 naive.o: naive.cu metrics.o common.o
 	nvcc $(FLAGS) $(NVCC_FLAGS) metrics.o common.o -c naive.cu
@@ -37,17 +37,15 @@ metrics.o: metrics.c
 common.o: common.cu
 	nvcc $(FLAGS) $(NVCC_FLAGS) -c common.cu
 
-cudaCommon.o: cudaCommon.cu
-	nvcc $(FLAGS) $(NVCC_FLAGS) -c cudaCommon.cu
-
 clean:
 	find \( -name '*.out' -or -name '*.o' -or -name '*~' -or -name '*.ppm' \) -delete
 	rm main
-	rm -r images
+	rm -r output
 	rm *.png
 
 run:
-	./main 1024 1024 512 naive images/naive.png
-	./main 1024 1024 512 cudaNaive images/cudaNaive.png 
-	./main 1024 1024 512 cudaDP images/cudaDP.png
-	xdg-open images/cudaNaive.png
+	./main 10000 10000 256 cudaDP output/cudaDP.png
+	./main 1024 1024 512 cudaNaive output/cudaNaive.png 
+	./main 1024 1024 512 naive output/naive.png
+	gpicview output/cudaDP.png
+

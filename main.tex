@@ -1,0 +1,43 @@
+\documentclass[letterpaper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{titling, amsmath, amssymb, url, alltt, float, enumitem, graphicx, multicols}
+\setlength{\droptitle}{-5em} 
+\title{Exploring Dynamic Parallelism in CUDA C with Mandelbrot Sets}
+\author{Joseph Zhong
+\\ josephz@cs.washington.edu
+\\ University of Washington}
+\usepackage[margin=0.75in]{geometry}
+
+\setlist{noitemsep}
+\graphicspath{images}
+
+\newcommand{\ind}{\hspace{1cm}} 
+\newcommand{\m}[1]{\mathbf{#1}}
+\newcommand{\x}{\m{x}}
+\newcommand{\bigC}{\mathbf{C}}
+\newcommand{\bigX}{\mathbf{X}}
+\newcommand{\bigI}{\mathbf{I}}
+
+\begin{document}
+\maketitle
+\begin{multicols}{2}
+
+\section{Introduction}
+
+Mandelbrot Sets are a well studied mathematical concept. Mathematically, the set
+  of complex numbers is formally defined as the set of complex value $c$ for 
+  which the quadratic $z_{n+1} = z_n^2+c$ remains bounded for a large number of 
+  iterations $n$ where $z_0 = 0$. 
+Visually, we can actually create a graph of the Mandelbrot set by plotting the
+  points $c$ belonging in the Mandelbrot set $M$. As a simple example, we could
+  color the values of $c$ which belong in the set one color, and those which
+  don't a different color. 
+In the context of graphically representing Mandelbrot sets in through computer 
+  generated graphics, we can color the points of the set based on the behavior
+  of the specific algorithm used to determine whether a point belongs in the set. 
+In this report we show examples of  
+
+
+
+\end{document}
+

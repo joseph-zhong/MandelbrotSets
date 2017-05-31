@@ -43,5 +43,10 @@ void reportOperations();
 // This reports Flops.
 void reportFlops();
 
+void reportConcise(const int width, const int height, const int maxIterations, 
+        const char *kernel, const char *filename);
+
+void outputTime();
+
 #endif // METRICS_H
 

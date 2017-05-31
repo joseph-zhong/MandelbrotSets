@@ -45,31 +45,25 @@ int main(int argc, char *argv[]) {
 
   // REVIEW josephz: These could be cmdline arguments but in order to
   // standardize the experiments, we will keep these constant for now.
-  const float zoom = ZOOM_DEFAULT;
-  const float xPos = X_POS_DEFAULT;
-  const float yPos = Y_POS_DEFAULT;
   const float radius = RADIUS_DEFAULT;
+  const complexNum cMin = complexNum(X_MIN_DEFAULT, Y_MIN_DEFAULT);
+  const complexNum cMax = complexNum(X_MAX_DEFAULT, Y_MAX_DEFAULT);
 
   if (strcmp(kernel, NAIVE_HOST) == 0) {
     if (VERBOSE) {
       printf("[main] Running NAIVE_HOST\n\n");
     }
     naiveMandelbrotSets(height, width, maxIterations, radius, 
-        complexNum(-1.5, -1), complexNum(0.5, 1), filename);
+        cMin, cMax, filename);
   }
   if (strcmp(kernel, CUDA_NAIVE) == 0) {
-    // cudaNaiveMandelbrotSets(height, width, maxIterations, 
-    //     zoom, yPos, xPos, radius, filename);
-   cudaNaiveMandelbrotSets(height, width, maxIterations, radius, filename);
+   cudaNaiveMandelbrotSets(height, width, maxIterations, radius, cMin, cMax, filename);
   }
   if (strcmp(kernel, CUDA_DP) == 0) {
-    cudaDPMandelbrotSets(height, width, maxIterations, 
-        zoom, yPos, xPos, radius, filename);
+    cudaDPMandelbrotSets(height, width, maxIterations, radius, cMin, cMax, filename);
   }
 
-  reportClock();
-  reportOperations();
-  reportFlops();
+  outputTime();
   return EXIT_SUCCESS;
 }
 

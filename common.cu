@@ -21,7 +21,6 @@
 
 #include "defaults.h"
 #include "common.h"
-#include "cudaCommon.h"
 
 void color(int red, int green, int blue, FILE *fp) {
   unsigned char colors[3];
@@ -134,3 +133,26 @@ void dwell_color(int *r, int *g, int *b, int dwell, int maxIterations) {
   }   
 } 
 
+__host__ __device__ int calculatePixelValue(int width, int height, int maxIterations,
+    complexNum cMin, complexNum cMax, int x, int y, 
+    const float radius) {
+  
+  complexNum diff = cMax - cMin;
+
+  float fx = (float) x / width;
+  float fy = (float) y / height;
+
+  complexNum c = cMin + complexNum(fx * diff.a, fy * diff.bi);
+
+  int iterations = 0;
+  complexNum z = c;
+  while (iterations < maxIterations && absSquared(z) < radius) {
+    z = z * z + c;
+    iterations++;
+  }
+  return iterations;
+}
+
+__host__ __device__ int divup(int x, int y) { 
+  return x / y + (x % y ? 1 : 0); 
+}

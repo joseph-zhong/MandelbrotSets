@@ -18,7 +18,7 @@
 #ifndef NAIVE_H
 #define NAIVE_H
 
-#include "cudaCommon.h"
+#include "common.h"
 
 // Naive Mandelbrot Set implementation in C. 
 __host__ void naiveMandelbrotSets(int height, int width, int maxIterations, 

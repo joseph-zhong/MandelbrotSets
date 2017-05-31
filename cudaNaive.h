@@ -16,18 +16,14 @@
 #ifndef CUDA_NAIVE_H
 #define CUDA_NAIVE_H
 
-#include "cudaCommon.h"
+#include "common.h"
 
 __host__ void cudaNaiveMandelbrotSets(int height, int width, int maxIterations, 
-        const float radius, const char *filename);
-
-// __global__ void cudaNaiveMandelbrotSetsKernel(int height, int width, int maxIterations, 
-//      const float zoom, const float yPos, const float xPos, const float radius, 
-//      int *d_output, long long int *d_operations);
+        const float radius, const complexNum cMin, const complexNum cMax, const char *filename);
 
 __global__ void cudaNaiveMandelbrotSetsKernel(int *d_output, 
   int width, int height, int maxIterations, const float radius, 
-  complexNum cmin, complexNum cmax);
+  const complexNum cMin, const complexNum cMax);
 
 #endif // CUDA_NAIVE_H
 

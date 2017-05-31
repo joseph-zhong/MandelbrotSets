@@ -13,8 +13,10 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "metrics.h"
+#include "defaults.h"
 
 // Define extern variables.
 double g_time_spent = 0.0;
@@ -40,5 +42,15 @@ void reportFlops() {
   printf("Flops Report\n");
   printf("------------\n");
   printf("\tFlops: %0.3f\n\n", ((double) g_operations / max(0.000001, g_time_spent)));
+}
+
+void reportConcise(const int width, const int height, const int maxIterations, 
+    const char *kernel, const char *filename) {
+  printf("[Res=%d] [Iter=%d] [Kernel=%s] [Seconds=%0.3e] [MP/s=%0.3e]\n", 
+      width, maxIterations, kernel, g_time_spent, (float) width * height / g_time_spent);
+}
+
+void outputTime() {
+  printf("%0.3e", g_time_spent);
 }
 

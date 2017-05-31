@@ -17,7 +17,7 @@
 
 #include <png.h>
 
-#include "cudaCommon.h"
+#include "common.h"
 
 #define BLOCK_SIZE 64
 #define DIVIDE_FACTOR 4
@@ -32,8 +32,7 @@ __device__ int same_dwell(int d1, int d2);
 __device__ int border_dwell (int w, int h, complexNum cmin, complexNum cmax, int x0, int y0, int d);
 
 __host__ void cudaDPMandelbrotSets(int height, int width, int maxIterations, 
-    const float zoom, const float yPos, const float xPos, const float radius,
-    const char *filename);
+    const float radius, const complexNum cMin, const complexNum cMax, const char *filename);
 
 __device__ int commonValue(int v0, int v1, int maxIterations);
 

@@ -23,7 +23,6 @@
 
 #include "naive.h"
 #include "common.h"
-#include "cudaCommon.h"
 #include "defaults.h"
 #include "metrics.h"
 
