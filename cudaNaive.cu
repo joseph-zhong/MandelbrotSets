@@ -45,6 +45,9 @@ __host__ void cudaNaiveMandelbrotSets(int height, int width, int maxIterations, 
   cudaNaiveMandelbrotSetsKernel<<<gridSize, blockSize>>>(d_output, width, height, maxIterations, radius, 
       cMin, cMax);
 
+  // Synchronize across threads once completed.
+  cudaCheck(cudaThreadSynchronize());
+
 	// Stop timer.
 	endClock(start);
 
@@ -55,7 +58,7 @@ __host__ void cudaNaiveMandelbrotSets(int height, int width, int maxIterations, 
 	cudaFree(d_output);
 
   // Write to output.
-  save_image(filename, h_output, width, height, maxIterations);
+  saveImage(filename, h_output, width, height, maxIterations);
 
 	free(h_output);
 }

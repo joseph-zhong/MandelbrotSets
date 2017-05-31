@@ -37,9 +37,9 @@ void color(int red, int green, int blue, FILE *fp);
 // Parses operation parameters.
 void parseArgs(int argc, char *argv[], int *width, int *height, int *maxIterations, char **kernel, char **filename);
 
-void save_image(const char *filename, int *dwells, int w, int h, int maxIterations);
+void saveImage(const char *filename, int *values, int w, int h, int maxIterations);
   
-void dwell_color(int *r, int *g, int *b, int dwell, int maxIterations);
+void mapValueToColor(int *r, int *g, int *b, int value, int maxIterations);
 
 inline void gpuAssert(cudaError_t code, const char *file, int line)
 {
@@ -96,6 +96,7 @@ inline __host__ __device__ complexNum operator/
 }  
 
  // This computes the pixel value using the Escape Time algorithm.
+ // This operation approximately conmputes 35 floating point operations.
 __host__  __device__ int calculatePixelValue(int width, int height, int maxIterations, complexNum cMin, complexNum cMax, int x, int y, const float radius);
 
  // This computes ceil(x / y).

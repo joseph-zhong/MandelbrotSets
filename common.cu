@@ -62,7 +62,7 @@ void parseArgs(int argc, char *argv[],
 //  assert(access(*filename, W_OK) == 0 && "Passed output filename could not be opened for writing.\n");
 }
 
-void save_image(const char *filename, int *dwells, int w, int h, int maxIterations) {
+void saveImage(const char *filename, int *values, int w, int h, int maxIterations) {
   png_bytep row;
   
   FILE *fp = fopen(filename, "wb");
@@ -88,7 +88,7 @@ void save_image(const char *filename, int *dwells, int w, int h, int maxIteratio
   for (int y = 0; y < h; y++) {
     for (int x = 0; x < w; x++) {
       int r, g, b;
-      dwell_color(&r, &g, &b, dwells[y * w + x], maxIterations);
+      mapValueToColor(&r, &g, &b, values[y * w + x], maxIterations);
       row[3 * x + 0] = (png_byte)r;
       row[3 * x + 1] = (png_byte)g;
       row[3 * x + 2] = (png_byte)b;
@@ -104,31 +104,22 @@ void save_image(const char *filename, int *dwells, int w, int h, int maxIteratio
 }
 
 
-void dwell_color(int *r, int *g, int *b, int dwell, int maxIterations) {
-  int DIVIDE_FACTOR = 4;
+void mapValueToColor(int *r, int *g, int *b, int value, int maxIterations) {
   int CUT_DWELL = maxIterations / DIVIDE_FACTOR;
-  // black for the Mandelbrot set
-  if(dwell >= maxIterations) {
+  if(value >= maxIterations) {
     *r = *g = *b = 0;
   } 
   else { 
-    // cut at zero
-    if(dwell < 0) {
-      dwell = 0;
+    if(value < 0) {
+      value = 0;
     }
 
-    *b = 255;
-    // *r = *g = (dwell - CUT_DWELL) * 255 / (maxIterations - CUT_DWELL);
-
-    if(dwell <= CUT_DWELL) {
-      // from black to blue the first half
+    if(value <= CUT_DWELL) {
       *r = *g = 0;
-      *b = 128 + dwell * 127 / (CUT_DWELL);
+      *b = 128 + value * 127 / (CUT_DWELL);
     } else {
-      // from blue to white for the second half
       *b = 255;
-      *r = *g = (dwell - CUT_DWELL) * 255 / (maxIterations - CUT_DWELL);
-      // *r = *g = 256.0 * log2(1.75 + dwell - log2(log2(z))) / log2((double)maxIterations);
+      *r = *g = (value - CUT_DWELL) * 255 / (maxIterations - CUT_DWELL);
     } 
   }   
 } 

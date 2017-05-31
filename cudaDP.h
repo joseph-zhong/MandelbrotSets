@@ -19,12 +19,6 @@
 
 #include "common.h"
 
-#define BLOCK_SIZE 64
-#define DIVIDE_FACTOR 4
-#define MAX_DWELL 512
-#define MAX_DEPTH 4
-#define MIN_SIZE 32
-
 __device__ int pixel_dwell(int w, int h, complexNum cmin, complexNum cmax, int x, int y);
 
 __device__ int same_dwell(int d1, int d2);

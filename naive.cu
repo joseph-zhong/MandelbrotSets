@@ -11,9 +11,6 @@
 //  
 //  This is a naive C implementation.
 //
-//  Each iteration the newZ is calculated from the square of the prevZ summed
-//  with the current pixel value. We begin at the origin.
-//
 
 #include <math.h>
 #include <stdlib.h>
@@ -41,6 +38,6 @@ void naiveMandelbrotSets(int height, int width, int maxIterations,
 	 }   
 	}
   endClock(start);
-  save_image(filename, h_output, width, height, maxIterations);
+  saveImage(filename, h_output, width, height, maxIterations);
 }
 
