@@ -40,7 +40,7 @@ __global__ void fillKernel(int width, int x0, int y0, int size, int value, int *
 
 __global__ void cudaDPMandelbrotSetsKernel(int height, int width, int maxIterations,
     complexNum cMin, complexNum cMax, int x0, int y0, int size, int depth, const float radius, 
-    int *d_output, long long int *d_operations);
+    int *d_output);
 
 #endif // CUDA_DP_H
 

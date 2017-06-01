@@ -29,13 +29,9 @@ __host__ void cudaDPMandelbrotSets(int height, int width, int maxIterations,
     const float radius, const complexNum cMin, const complexNum cMax, const char *filename) {
   const int OUTPUT_SIZE = height * width * sizeof(int);
   int *h_output = (int*) malloc(OUTPUT_SIZE);
-  long long int *h_operations = (long long int*) calloc(1, sizeof(long long int));
 
   int *d_output = NULL; 
-  long long int *d_operations = NULL;
   cudaCheck(cudaMalloc((void **) &d_output, OUTPUT_SIZE));
-  cudaCheck(cudaMalloc((void **) &d_operations, sizeof(long long int)));
-  cudaCheck(cudaMemcpy(d_operations, h_operations, sizeof(long long int), cudaMemcpyHostToDevice));
 
   dim3 gridSize(MIN_SIZE, MIN_SIZE);
   dim3 blockSize(BLOCK_SIZE, DIVIDE_FACTOR);
@@ -44,24 +40,21 @@ __host__ void cudaDPMandelbrotSets(int height, int width, int maxIterations,
 
   cudaDPMandelbrotSetsKernel<<<gridSize, blockSize>>>(height, width, maxIterations,
       cMin, cMax, X_POS_DEFAULT, Y_POS_DEFAULT, width / MIN_SIZE, 1, radius,
-      d_output, d_operations);
+      d_output);
   cudaCheck(cudaThreadSynchronize());
   
   endClock(start);
-  
-  cudaCheck(cudaMemcpy(h_output, d_output, OUTPUT_SIZE, cudaMemcpyDeviceToHost));
-  cudaCheck(cudaMemcpy(h_operations, d_operations, sizeof(long long int), cudaMemcpyDeviceToHost));
 
- 	// Free device output and operations.
+  if (filename != NULL) {
+    cudaCheck(cudaMemcpy(h_output, d_output, OUTPUT_SIZE, cudaMemcpyDeviceToHost));
+
+    // Write output.
+    saveImage(filename, h_output, width, height, maxIterations);
+  }
+
+ 	// Free device output.
   cudaFree(d_output);
-  cudaFree(d_operations);
- 
-	// Write output and operations.
-  saveImage(filename, h_output, width, height, maxIterations);
-  g_operations = *h_operations;
- 
   free(h_output);
-  free(h_operations);
 }
 
 __device__ int commonValue(int v0, int v1, int maxIterations) {
@@ -129,7 +122,7 @@ __global__ void fillKernel(int width, int x0, int y0, int size, int value, int *
 
 __global__ void cudaDPMandelbrotSetsKernel(int height, int width, int maxIterations,
     complexNum cMin, complexNum cMax, int x0, int y0, int size, int depth, const float radius,
-    int *d_output, long long int *d_operations) {
+    int *d_output) {
 
   x0 += size * blockIdx.x;
   y0 += size * blockIdx.y;
@@ -146,7 +139,7 @@ __global__ void cudaDPMandelbrotSetsKernel(int height, int width, int maxIterati
       dim3 recurseGridSize(DIVIDE_FACTOR, DIVIDE_FACTOR);
       dim3 recurseBlockSize(blockDim.x, blockDim.y);
       cudaDPMandelbrotSetsKernel<<<recurseGridSize, recurseBlockSize>>>(height, width, maxIterations, 
-          cMin, cMax, x0, y0, size / DIVIDE_FACTOR, depth + 1, radius, d_output, d_operations); 
+          cMin, cMax, x0, y0, size / DIVIDE_FACTOR, depth + 1, radius, d_output); 
     }
     else {
       dim3 pixelGridSize(divup(size, BLOCK_SIZE), divup(size, DIVIDE_FACTOR));

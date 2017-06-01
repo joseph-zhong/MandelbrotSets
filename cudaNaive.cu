@@ -51,15 +51,16 @@ __host__ void cudaNaiveMandelbrotSets(int height, int width, int maxIterations, 
 	// Stop timer.
 	endClock(start);
 
-	// Copy output and operations.
-	cudaCheck(cudaMemcpy(h_output, d_output, OUTPUT_SIZE, cudaMemcpyDeviceToHost));        
+  if (filename != NULL) {
+    // Copy output.
+    cudaCheck(cudaMemcpy(h_output, d_output, OUTPUT_SIZE, cudaMemcpyDeviceToHost));        
 
-	// Free output and operations.
-	cudaFree(d_output);
+    // Write to output.
+    saveImage(filename, h_output, width, height, maxIterations);
+  } 
 
-  // Write to output.
-  saveImage(filename, h_output, width, height, maxIterations);
-
+  // Free output.
+  cudaFree(d_output);
 	free(h_output);
 }
 

@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <assert.h>
+#include <stdbool.h>
 
 #include "defaults.h"
 #include "common.h"

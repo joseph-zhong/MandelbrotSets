@@ -18,9 +18,9 @@ NVCC_FLAGS=-arch=sm_35 -rdc=true -lcudadevrt -Xcompiler -fopenmp
 
 all: main 
 
-main: metrics.o common.o naive.o cudaNaive.o cudaDP.o main.cu 
+main: arguments.o metrics.o common.o naive.o cudaNaive.o cudaDP.o main.cu 
 	mkdir -p output
-	nvcc $(FLAGS) $(NVCC_FLAGS) metrics.o common.o naive.o cudaNaive.o cudaDP.o main.cu -o main
+	nvcc $(FLAGS) $(NVCC_FLAGS) arguments.o metrics.o common.o naive.o cudaNaive.o cudaDP.o main.cu -o main
 	
 cudaNaive.o: cudaNaive.cu metrics.o
 	nvcc $(FLAGS)  $(NVCC_FLAGS) metrics.o -c cudaNaive.cu
@@ -36,6 +36,9 @@ metrics.o: metrics.c
 
 common.o: common.cu
 	nvcc $(FLAGS) $(NVCC_FLAGS) -c common.cu
+
+arguments.o: arguments.c
+	g++ $(FLAGS) -c arguments.c
 
 clean:
 	find \( -name '*.out' -or -name '*.o' -or -name '*~' -or -name '*.ppm' \) -delete

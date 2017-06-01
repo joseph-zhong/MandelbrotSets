@@ -38,6 +38,8 @@ void naiveMandelbrotSets(int height, int width, int maxIterations,
 	 }   
 	}
   endClock(start);
-  saveImage(filename, h_output, width, height, maxIterations);
+  if (filename != NULL) {
+    saveImage(filename, h_output, width, height, maxIterations);\
+  }
 }
 
