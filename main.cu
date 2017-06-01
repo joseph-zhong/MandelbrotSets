@@ -35,18 +35,11 @@ int main(int argc, char *argv[]) {
   char *kernel;
   char *output;
 
+  // Parse arguments.
   struct arguments args;
-  
   setDefaultArgs(&args);
-  
- //  args.width = WIDTH_DEFAULT;
- //  args.height = HEIGHT_DEFAULT;
- //  args.maxIter = MAX_ITER_DEFAULT;
- //  args.kernel = NAIVE_HOST;
- //  args.output = NULL;
 
   struct argp argp = { options, parse_opt, args_doc, doc, 0, 0, 0 };
-
   argp_parse(&argp, argc, argv, 0, 0, &args);
 
   width = args.width;
@@ -57,7 +50,7 @@ int main(int argc, char *argv[]) {
 
   //  parseArgs(argc, argv, &width, &height, &maxIterations, &kernel, &output);
 
-  if (VERBOSE || true) {
+  if (VERBOSE) {
     printf("\n[main] OPERATING PARAMETERS\n");
     printf("-----------------------------\n");
     printf("\twidth: '%d'\n\theight: '%d'\n\tmaxIterations: '%d'\n\tkernel: '%s'\n\toutput: '%s'\n\n",

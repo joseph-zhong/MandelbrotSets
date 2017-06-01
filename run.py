@@ -30,7 +30,7 @@ KERNELS = ["naive"] + CUDA_KERNELS
 # KERNELS = CUDA_KERNELS
 EXP_DIR = "experiments"
 OUT_DIR = "output"
-BASE_CMD = "./main {} {} {} {} {}"
+BASE_CMD = "./main -h {} -w {} -m {} -k {}"
 
 
 if not os.path.exists(EXP_DIR) or not os.path.isdir(EXP_DIR):
@@ -46,15 +46,14 @@ for exp in EXPERIMENTS:
             experiments[exp][kernel] = {}
         for i in range(UPPER_BOUND):
             val = int(EXPERIMENTS[exp] * SCALING_FACTOR ** i)
-            val = min(val, MAX_RES)
+            if exp == 'res':
+                val = min(val, MAX_RES)
             if val not in experiments[exp][kernel]:
                 experiments[exp][kernel][val] = []
-            output = os.path.join(OUT_DIR,
-                    "kernel_{}_exp_{}_val_{}_mandelbrot_set.png".format(kernel, exp, val))
             if exp == "res":
-                cmd = BASE_CMD.format(val, val, BASE_ITER, kernel, output).split()
+                cmd = BASE_CMD.format(val, val, BASE_ITER, kernel).split()
             else:
-                cmd = BASE_CMD.format(BASE_RES, BASE_RES, val, kernel, output).split()
+                cmd = BASE_CMD.format(BASE_RES, BASE_RES, val, kernel).split()
             print "[Run] [exp='{}'] [kernel='{}'] [val='{}']".format(exp,
                     kernel, val)
             for trial in range(AVERAGING_FACTOR):
@@ -78,7 +77,6 @@ for exp in experiments:
     leg = plt.legend(frameon=True, loc="upper left")
     plt.savefig(os.path.join(EXP_DIR,
         "running_time_graph_exp_{}.png".format(exp)))
-    plt.show()
 
 print "[Graphing M. Pixels per second]"
 for exp in experiments:
@@ -98,6 +96,5 @@ for exp in experiments:
     leg = plt.legend(frameon=True, loc="upper left")
     plt.savefig(os.path.join(EXP_DIR,
         "mpps_graph_exp_{}.png".format(exp)))
-    plt.show()
 
 
