@@ -25,6 +25,10 @@ static struct argp_option options[] = {
     { "maxIter", 'm', "MAX_ITER", 0, "Maximum iterations to compute before assigning pixel value."},
     { "kernel", 'k', "KERNEL", 0, "Kernel to utilize. Use 'naive', 'cudaNaive', or 'cudaDP'."},
     { "output", 'o', "OUTPUT", 0, "Filename to output image. Will not output if not provided."},
+    { "xMin", 'a', "X_MIN", 0, "The minimum X-Value to plot in the image."},
+    { "xMax", 'b', "X_MAX", 0, "The maximum X-Value to plot in the image."},
+    { "yMin", 'c', "Y_MIN", 0, "The minimum Y-Value to plot in the image."},
+    { "yMax", 'd', "Y_MAX", 0, "The maximum Y-Value to plot in the image."},
     { 0 } 
 };
 
@@ -34,6 +38,10 @@ struct arguments {
   int maxIter;
   char *kernel;
   char *output;
+  float xMin;
+  float xMax;
+  float yMin;
+  float yMax;
 };
 
 void setDefaultArgs(struct arguments *args);

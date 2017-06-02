@@ -27,43 +27,32 @@
 
 __host__ void cudaDPMandelbrotSets(int height, int width, int maxIterations, 
     const float radius, const complexNum cMin, const complexNum cMax, const char *filename) {
-  // Host input setup: image.
   const int OUTPUT_SIZE = height * width * sizeof(int);
   int *h_output = (int*) malloc(OUTPUT_SIZE);
 
-  // Device input setup: image.
   int *d_output = NULL; 
-  long long int *d_operations = NULL;
-  cudaCheck(cudaMalloc(&d_output, OUTPUT_SIZE));
-  cudaCheck(cudaMalloc(&d_operations, sizeof(long long int)));
+  cudaCheck(cudaMalloc((void **) &d_output, OUTPUT_SIZE));
 
-  // Kernel Size.
   dim3 gridSize(MIN_SIZE, MIN_SIZE);
   dim3 blockSize(BLOCK_SIZE, DIVIDE_FACTOR);
 
-  // Begin timer.
   clock_t start = clock();
 
-  // Launch kernel.
   cudaDPMandelbrotSetsKernel<<<gridSize, blockSize>>>(height, width, maxIterations,
       cMin, cMax, X_POS_DEFAULT, Y_POS_DEFAULT, width / MIN_SIZE, 1, radius,
       d_output);
-
-  // Synchronize across threads once completed.
   cudaCheck(cudaThreadSynchronize());
   
-  // Stop timer.
   endClock(start);
 
   if (filename != NULL) {
-    // Copy output.
     cudaCheck(cudaMemcpy(h_output, d_output, OUTPUT_SIZE, cudaMemcpyDeviceToHost));
 
     // Write output.
     saveImage(filename, h_output, width, height, maxIterations);
   }
-  
-  // Free output.
+
+ 	// Free device output.
   cudaFree(d_output);
   free(h_output);
 }
@@ -158,6 +147,7 @@ __global__ void cudaDPMandelbrotSetsKernel(int height, int width, int maxIterati
       pixelKernel<<<pixelGridSize, pixelBlockSize>>>(width, height, maxIterations,
            cMin, cMax, x0, y0, size, radius, d_output);
     }
+    cudaCheck2(cudaGetLastError());
   }
 }
 

@@ -106,7 +106,7 @@ void saveImage(const char *filename, int *values, int w, int h, int maxIteration
 
 
 void mapValueToColor(int *r, int *g, int *b, int value, int maxIterations) {
-  int CUT_DWELL = maxIterations / DIVIDE_FACTOR;
+  int d = maxIterations / DIVIDE_FACTOR;
   if(value >= maxIterations) {
     *r = *g = *b = 0;
   } 
@@ -115,12 +115,12 @@ void mapValueToColor(int *r, int *g, int *b, int value, int maxIterations) {
       value = 0;
     }
 
-    if(value <= CUT_DWELL) {
+    if(value <= d) {
       *r = *g = 0;
-      *b = 128 + value * 127 / (CUT_DWELL);
+      *b = 128 + value * 127 / (d);
     } else {
       *b = 255;
-      *r = *g = (value - CUT_DWELL) * 255 / (maxIterations - CUT_DWELL);
+      *r = *g = (value - d) * 255 / (maxIterations - d);
     } 
   }   
 } 
@@ -128,16 +128,18 @@ void mapValueToColor(int *r, int *g, int *b, int value, int maxIterations) {
 __host__ __device__ int calculatePixelValue(int width, int height, int maxIterations,
     complexNum cMin, complexNum cMax, int x, int y, 
     const float radius) {
-  
+  // Plot bounds. 
   complexNum diff = cMax - cMin;
 
-  float fx = (float) x / width;
-  float fy = (float) y / height;
+  // Determine pixel position.
+  float xPos = (float) x / width * diff.a;
+  float yPos = (float) y / height * diff.bi;
 
-  complexNum c = cMin + complexNum(fx * diff.a, fy * diff.bi);
+  // Initialize c and z.
+  complexNum c = cMin + complexNum(xPos, yPos);
+  complexNum z = c;
 
   int iterations = 0;
-  complexNum z = c;
   while (iterations < maxIterations && absSquared(z) < radius) {
     z = z * z + c;
     iterations++;
@@ -148,3 +150,4 @@ __host__ __device__ int calculatePixelValue(int width, int height, int maxIterat
 __host__ __device__ int divup(int x, int y) { 
   return x / y + (x % y ? 1 : 0); 
 }
+

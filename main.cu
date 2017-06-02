@@ -8,7 +8,7 @@
 //
 // main.cu
 // ---
-//  This is the main program which launches computer kernels.
+//  This is the main program which launches computation kernels.
 //
 
 #include <math.h>
@@ -34,11 +34,16 @@ int main(int argc, char *argv[]) {
   int maxIterations;
   char *kernel;
   char *output;
+  float xMin;
+  float xMax;
+  float yMin;
+  float yMax;
 
-  // Parse arguments.
+  // Set default arguments.
   struct arguments args;
   setDefaultArgs(&args);
 
+  // Parse custom argument options.
   struct argp argp = { options, parse_opt, args_doc, doc, 0, 0, 0 };
   argp_parse(&argp, argc, argv, 0, 0, &args);
 
@@ -47,12 +52,15 @@ int main(int argc, char *argv[]) {
   maxIterations = args.maxIter;
   kernel = args.kernel;
   output = args.output;
-
-  //  parseArgs(argc, argv, &width, &height, &maxIterations, &kernel, &output);
+  xMin = args.xMin;
+  xMax = args.xMax;
+  yMin = args.yMin;
+  yMax = args.yMax;
 
   if (VERBOSE) {
     printf("\n[main] OPERATING PARAMETERS\n");
     printf("-----------------------------\n");
+    printf("\t(%0.3f, %0.3f) to (%0.3f, %0.3f)\n", xMin, yMin, xMax, yMax);
     printf("\twidth: '%d'\n\theight: '%d'\n\tmaxIterations: '%d'\n\tkernel: '%s'\n\toutput: '%s'\n\n",
         width, height, maxIterations, kernel, output);
   }
@@ -60,8 +68,8 @@ int main(int argc, char *argv[]) {
   // REVIEW josephz: These could be cmdline arguments but in order to
   // standardize the experiments, we will keep these constant for now.
   const float radius = RADIUS_DEFAULT;
-  const complexNum cMin = complexNum(X_MIN_DEFAULT, Y_MIN_DEFAULT);
-  const complexNum cMax = complexNum(X_MAX_DEFAULT, Y_MAX_DEFAULT);
+  const complexNum cMin = complexNum(xMin, yMin);
+  const complexNum cMax = complexNum(xMax, xMax);
 
   if (strcmp(kernel, NAIVE_HOST) == 0) {
     if (VERBOSE) {

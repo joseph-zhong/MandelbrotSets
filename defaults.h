@@ -60,7 +60,6 @@
 // Default Dynamic Parallelism parameters.
 #define BLOCK_SIZE 64
 #define DIVIDE_FACTOR 4
-#define MAX_DWELL 512
 #define MAX_DEPTH 4
 #define MIN_SIZE 32
 

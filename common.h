@@ -31,6 +31,21 @@
   }                                              \
 } 
 
+#define cudaCheck2(stmt2)                        \
+{                                                \
+  cudaError_t err = stmt2;                       \
+  if (err != cudaSuccess) {                      \
+    printf("\nERROR ERROR ERROR\n");             \
+    printf("ERROR ERROR ERROR\n\n");             \
+    printf("\tFailed to run %s\n", #stmt2);      \
+    printf("\t *** [File: %s] [Line: %s]\n",     \
+        __FILE__, __LINE__);                     \
+    assert(0);                                   \
+    printf("\nERROR ERROR ERROR\n");             \
+    printf("ERROR ERROR ERROR\n");               \
+  }                                              \
+} 
+
 // Writes RGB to a ppm FILE*. 
 void color(int red, int green, int blue, FILE *fp);
 
