@@ -1,7 +1,5 @@
 # Metrics
 
-## Background
-
 ## Objectives
 
 The goal of this project was to discover the use case of dynamic parallelism.

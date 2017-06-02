@@ -8,7 +8,7 @@ multicol, hyperref, listings}
 \\ josephz@cs.washington.edu
 \\ University of Washington}
 \usepackage[top=0.5in, bottom=1in, left=0.5in, right=0.5in]{geometry}
-\graphicspath{ {experiments3} {images} }
+\graphicspath{ {../experiments3} {../images} }
 \setlist{noitemsep}
 \setlength{\columnsep}{1cm}
 
@@ -558,13 +558,13 @@ The trend continues from Figure \ref{fig:mppsIter}, where the variance between
   increased significantly throughout the experiment.
 
 \begin{figure}[H]
-  \includegraphics[width=\linewidth]{experiments3/mpps_graph_exp_iter.png}
+  \includegraphics[width=\linewidth]{../experiments3/mpps_graph_exp_iter.png}
   \caption{Megapixels per second, varying iteration cap.}
   \label{fig:mppsIter}
 \end{figure}
 
 \begin{figure}[H]
-  \includegraphics[width=\linewidth]{experiments3/mpps_graph_exp_res.png}
+  \includegraphics[width=\linewidth]{../experiments3/mpps_graph_exp_res.png}
   \caption{Megapixels per second, varying image resolution.}
   \label{fig:mppsRes}
 \end{figure}
@@ -589,13 +589,13 @@ It is also that at around 19K resolution, that we have hit a pathological case
   the sudden drop in performance.
 
 \begin{figure}[H]
-  \includegraphics[width=\linewidth]{experiments3/running_time_graph_exp_iter.png}
+  \includegraphics[width=\linewidth]{../experiments3/running_time_graph_exp_iter.png}
   \caption{Kernel running time, varying iteration cap.}
   \label{fig:rtIter}
 \end{figure}
 
 \begin{figure}[H]
-  \includegraphics[width=\linewidth]{experiments3/running_time_graph_exp_res.png}
+  \includegraphics[width=\linewidth]{../experiments3/running_time_graph_exp_res.png}
   \caption{Kernel running time, varying image resolution.}
   \label{fig:rtRes}
 \end{figure}
@@ -645,13 +645,14 @@ Thanks to significant development in the CUDA programming model in recent years,
   we can perhaps see increases in algorithm design which can better utilize the
   capabilities of increasingly powerful and flexible hardware. 
 
+\section{Images}
+
+Some outputs of our framework can be seen at 
+\url{https://github.com/joseph-zhong/MandelbrotSets/tree/master/images}
+
 \end{multicols}
 
 
 
 \end{document}
-
-
-
-
 
