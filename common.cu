@@ -35,10 +35,6 @@ void color(int red, int green, int blue, FILE *fp) {
 void parseArgs(int argc, char *argv[], 
     int *width, int *height, int *maxIterations, 
     char **kernel, char **filename) {
-  if (VERBOSE) {
-    printf(USAGE, argv[0]);
-    printf(EXAMPLE, argv[0]);
-  }
   // Set default operation arguments if needed. Parse cmdline arguments
   // otherwise. 
   if (argc != 6) {

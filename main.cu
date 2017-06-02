@@ -96,7 +96,11 @@ int main(int argc, char *argv[]) {
     cudaDPMandelbrotSets(height, width, maxIterations, radius, cMin, cMax, xPos, yPos, output);
   }
 
-  outputTime();
+  if (VERBOSE) {
+    printf("[main] Time in seconds: ");
+    outputTime();
+    printf("\n");
+  }
   return EXIT_SUCCESS;
 }
 

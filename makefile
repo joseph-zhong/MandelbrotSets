@@ -34,8 +34,7 @@ naive.o: naive.cu metrics.o common.o
 metrics.o: metrics.c
 	g++ $(FLAGS) -c metrics.c 
 
-common.o: comm
-on.cu
+common.o: common.cu
 	nvcc $(FLAGS) $(NVCC_FLAGS) -c common.cu
 
 arguments.o: arguments.c
