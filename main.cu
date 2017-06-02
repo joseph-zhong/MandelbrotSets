@@ -84,9 +84,15 @@ int main(int argc, char *argv[]) {
         cMin, cMax, output);
   }
   if (strcmp(kernel, CUDA_NAIVE) == 0) {
-   cudaNaiveMandelbrotSets(height, width, maxIterations, radius, cMin, cMax, output);
+    if (VERBOSE) {
+      printf("[main] Running CUDA_NAIVE\n\n");
+    }
+    cudaNaiveMandelbrotSets(height, width, maxIterations, radius, cMin, cMax, output);
   }
   if (strcmp(kernel, CUDA_DP) == 0) {
+    if (VERBOSE) {
+      printf("[main] Running CUDA_DP\n\n");
+    }
     cudaDPMandelbrotSets(height, width, maxIterations, radius, cMin, cMax, xPos, yPos, output);
   }
 

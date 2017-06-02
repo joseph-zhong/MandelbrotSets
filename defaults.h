@@ -13,7 +13,7 @@
 #define DEFAULTS_H
 #include <stdbool.h>
 
-#define VERBOSE false
+#define VERBOSE true
 #define KERNEL_VERBOSE false
 
 // Colors.
@@ -30,29 +30,6 @@
 #define X_MAX_DEFAULT 0.5
 #define Y_MIN_DEFAULT -1.0
 #define Y_MAX_DEFAULT 1.0
-
-// #define X_MIN_DEFAULT -0.75
-// #define X_MAX_DEFAULT -0.741
-// #define Y_MIN_DEFAULT 0.075
-// #define Y_MAX_DEFAULT 0.1
-
-
-// #define X_MIN_DEFAULT -0.37797980
-// #define X_MAX_DEFAULT -0.26686869
-// #define Y_MIN_DEFAULT  0.60988165
-// #define Y_MAX_DEFAULT  0.73456178
-
-// 0.65243547,0.66478114];
-// y in [0.49381968,0.50878414
-
-// #define X_MIN_DEFAULT -0.743643
-// #define X_MAX_DEFAULT 0.131825
-// #define Y_MIN_DEFAULT 0.00003 
-// #define Y_MAX_DEFAULT 5000
-
-#define X_POS_DEFAULT (((X_MAX_DEFAULT) - (X_MIN_DEFAULT)) / 2)
-#define Y_POS_DEFAULT (((X_MAX_DEFAULT) - (X_MIN_DEFAULT)) / 2)
-
 
 // CUDA Tile Sizes.
 #define TILE_WIDTH 16
@@ -76,10 +53,6 @@
 #define NAIVE_OUT_DEFAULT "output/naive.png"
 #define CUDA_NAIVE_OUT_DEFAULT "output/cudaNaive.png"
 #define CUDA_DP_OUT_DEFAULT "output/cudaDP.png"
-
-// Usage and example.
-#define USAGE "Usage:   \n\t%s <width> <height> <maxiter> <kernel> <output> \n"
-#define EXAMPLE "Example: \n\t%s 600 400 1000 naive output/out.png\n\n" 
 
 // This is a debugging print statement which 
 // prints if VERBOSE is set to true.

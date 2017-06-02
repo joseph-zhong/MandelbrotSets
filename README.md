@@ -1,8 +1,31 @@
 # MandelbrotSets
 Mandelbrot Sets with Dynamic Parallelism in CUDA C
 
+## Build
+
+A device of compute capability of at least 3.5 is required.
+
+### Install 
+
+```
+make
+```
+
+### Run
+
+```
+make run
+```
+
+Try some examples
+
+```
+./main -w 10000 -h 10000 -m 256 -k cudaDP -o output/cudaDP_10k.png 
+```
+
 ## Usage 
 
+```
 Usage: main [-?V] [-a X_MIN] [-b X_MAX] [-c Y_MIN] [-d Y_MAX] [-h HEIGHT]
             [-k KERNEL] [-m MAX_ITER] [-o OUTPUT] [-w WIDTH] [--xMin=X_MIN]
             [--xMax=X_MAX] [--yMin=Y_MIN] [--yMax=Y_MAX] [--height=HEIGHT]
@@ -31,4 +54,4 @@ Mandatory or optional arguments to long options are also mandatory or optional
 for any corresponding short options.
 
 Report bugs to josephz@cs.washington.edu.
-
+```
