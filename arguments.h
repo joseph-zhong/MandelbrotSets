@@ -18,7 +18,7 @@
 #include <stdlib.h>
 
 static char doc[] = "Exploring Mandelbrot Sets with CUDA C and Dynamic Parallelism.";
-static char args_doc[] = "[WIDTH] [HEIGHT] [MAX_ITER] [KERNEL] [OUTPUT]";
+static char args_doc[] = "";
 static struct argp_option options[] = { 
     { "width", 'w', "WIDTH", 0, "Width of image to produce."},
     { "height", 'h', "HEIGHT", 0, "Height of image to produce."},
