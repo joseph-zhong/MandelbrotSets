@@ -46,8 +46,8 @@ clean:
 	rm -r output
 
 run:
-	./main 10000 10000 256 cudaDP output/cudaDP.png
-	./main 1024 1024 512 cudaNaive output/cudaNaive.png 
-	./main 1024 1024 512 naive output/naive.png
+	./main -w 10000 -h 10000 -m 256 -k cudaDP -o output/cudaDP.png
+	./main -w 1024 -h 1024 -m 512 -k cudaNaive -o output/cudaNaive.png 
+	./main -w 1024 -h 1024 -m 512 -k naive -o output/naive.png
 	gpicview output/cudaDP.png
 

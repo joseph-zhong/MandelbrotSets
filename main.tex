@@ -2,7 +2,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{titling, amsmath, amssymb, url, alltt, float, enumitem, graphicx,
 multicol, hyperref, listings}
-\setlength{\droptitle}{-7em} 
+\setlength{\droptitle}{-5em} 
 \title{Exploring Dynamic Parallelism in CUDA C with Mandelbrot Sets}
 \author{Joseph Zhong
 \\ josephz@cs.washington.edu
@@ -379,7 +379,7 @@ Below is the \texttt{calculateBorder} implementation.
 
 The Escape Time Algorithm is utilized to load pixel values on the border into
   shared memory, where a parallel reduction is used to reduce the border values
-  into a common value if it exists, or a failure flag otherwise. \\ 
+  into a common value if it exists, or a failure flag otherwise. 
 
 \begin{lstlisting}
 __device__ int calculateBorder(int width, 
@@ -514,20 +514,31 @@ The primary experiments we analyze between the algorithms are as follow:
   \item The impact of increased output resolution.
 \end{itemize}
 
+To measure the above experiments, we set a baseline iteration cap at 256, and a
+  baseline resolution starting at 2048x2048. We then increase the two parameters 
+  by a factor of 25\% a total of 12 times, running 10 trials to average, and
+  take the min and max running times in seconds. 
+Each of the individual MP/s and Total Kernel Running Time experiments were ran
+  by setting the baseline variable of either iteration cap or resolution, and
+  varying the other variable.  
+We set a maximum resolution of 23150x23150 pixels, which is a bit before the
+  point at which we empirically began to run out of memory on our GPU.
+All of our experiments were run on the initial Mandelbrot Set coordinates, at
+  (-1.5, -1) to (0.5, 1).
+
   \section{Results}
 
 The below graphs were all generated through our \url{run.py} script using
-  \texttt{matplotlib} and \texttt{subprocess}.
+  \texttt{matplotlib} and \texttt{subprocess}. 
 
-\begin{figure}[H]
-  \includegraphics[width=\linewidth]{experiments3/mpps_graph_exp_iter.png}
-  \caption{Megapixels per second, varying iteration cap.}
-  \label{fig:mpps_iter}
-\end{figure}
+\textbf{Note:} While included in our code is functionality to generate results
+  using the host hardware, we have not included experiments as we concluded from
+  our short experiments that sequential implementations were simply entirely too
+  slow to compare with either of the data parallel implementations.
 
-We see from Figure \ref{fig:mmps_iter} that our Border-Tracing kernel
+We see from Figure \ref{fig:mppsIter} that our Border-Tracing kernel
   outperforms the naive implementation across each iteration cap by a factor of
-  about 50\%. Interestingly, as the iteration cap increases, the variance
+  about 200\%. Interestingly, as the iteration cap increases, the variance
   amongst the trials of the Border-Tracing kernel decreases, with nearly no 
   variance between the minimum and maximum trials towards the latter half of the 
   experiment. Also interesting to note that the naive kernel consistently has
@@ -536,30 +547,106 @@ Overall from the logarithmic behavior of this plot perhaps indicates that as the
   iteration cap increases, that benefit of parallelism dwindles as the problem
   becomes increasingly compute bound.  
 
+In Figure \ref{fig:mppsRes}, we can very obviously that the Border-Tracing
+  kernel by far outperforms the naive implementation at every resolution.
+  Interesting to see is how the naive solution nearly behaves as a step
+  function, where at around 800x800, the efficiency of the kernel suddenly jumps
+  up to nearly 1000 MPix/s from the previous base of around 800 MPix/s.
+The trend continues from Figure \ref{fig:mppsIter}, where the variance between
+  the two implementations significantly differs, where the naive implementation
+  is very stable while here the variance of the Border-Tracing kernel has
+  increased significantly throughout the experiment.
+
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{experiments3/mpps_graph_exp_iter.png}
+  \caption{Megapixels per second, varying iteration cap.}
+  \label{fig:mppsIter}
+\end{figure}
+
 \begin{figure}[H]
   \includegraphics[width=\linewidth]{experiments3/mpps_graph_exp_res.png}
   \caption{Megapixels per second, varying image resolution.}
+  \label{fig:mppsRes}
 \end{figure}
+
+
+
+Additionally, it is interesting to think about the behavior of the averages.
+  Through 15Kx15K resolution, the efficiency of the Border-Tracing kernel seems
+  to monotonically increase. This is perhaps best explained through the fact
+  that as resolution is increased, the number of pixels within the set grow
+  exponentially, but the method of the Border-Tracing Algorithm is able to keep
+  up with the growth as the number of pixels which need per-pixel granularity
+  computation is not growing as quickly. 
+However, more interesting is the sudden drop in performance at around 19Kx19K
+  resolution. Perhaps if we had a graphics card of greater memory capacity, we
+  would be able to see that past 15K resolution, that the behav,ior of the curve
+  is in fact logrithmic, and that we would see little to no growth in
+  performance beyond 15K. 
+It is also that at around 19K resolution, that we have hit a pathological case
+  in which each subsequent subdivision in the rectangles continuously has border
+  values which are not uniform until the subdivisions are very small, causing
+  the sudden drop in performance.
 
 \begin{figure}[H]
   \includegraphics[width=\linewidth]{experiments3/running_time_graph_exp_iter.png}
   \caption{Kernel running time, varying iteration cap.}
+  \label{fig:rtIter}
 \end{figure}
 
 \begin{figure}[H]
   \includegraphics[width=\linewidth]{experiments3/running_time_graph_exp_res.png}
   \caption{Kernel running time, varying image resolution.}
+  \label{fig:rtRes}
 \end{figure}
 
+With the Running time against iteration cap shown in Figure \ref{fig:rtIter}, it
+  is obvious to see the performance increase which the Border-Tracing kernel has
+  over the naive implementation, again consistently running in half the time in
+  seconds. Unlike the previous experiments (See Figures \ref{fig:mppsRes} and
+  \ref{fig:mppsIter}), it seems as though the variance for naive implementation
+  of the Escape Time Algorithm is ever so slightly greater than its counterpart.
+However the previous two experiments in MPix/s would indicate that the
+  Border-Tracing Algorithm is more volatile, depending on dynamically
+  discoverable parallel work, and thus leading to more variable running times
+  depending on which portions of the plot are computed on. 
 
+In that view, it makes sense that this experiment had particularly low variance,
+  as we fixed the baseline resolution to 2048x2048 while varying the iteration
+  cap. It seems intuitive that a linear increase in difficulty leads to a linear
+  increase in compute time, as the actual size and number of compute resources
+  dispatched remains constant throughout the experiment. 
 
-  \section{Conclusion}
+In Figure \ref{fig:rtRes}, we see once again that the running time over
+  increasing resolution leads to very low varying results, just as in the other
+  Running time experiment (See Figure \ref{fig:rtIter}). We can see that at very
+  small problems, the difference between the two kernels are nearly
+  indistinguishable. Although both curves seem to follow an exponentially
+  growing behavior, the naive Escape Time Algorithm kernel grows vastly faster
+  than the Border-Tracing counterpart. At 23K resolution, the Border-Tracing
+  counterpart nearly has 20\% the running time of the naive kernel.
+  Interestingly, we see here that at 19K the Border-Tracing kernel perhaps took
+  an unusual amount of time, resulting in the previously seen sudden drops in
+  performance efficiency (See Figure \ref{fig:mppsRes}).  
 
+  \section{Conclusions and Future Work}
 
+In this report, we present data parallel algorithms for Mandelbrot Set image
+  computation, where the methods we have presented can be utilized as
+  subroutines in computer graphics applications. Additionally, we have released
+  code which can be helpful for running timing and kernel performance
+  experiments for future use. The core idea behind this report was to explore
+  the potential power of Dynamic Parallelism. 
+Given the significant theoretical and mathematical backing behind the generation 
+  of fractals and Mandelbrot sets, there is substantial future work which lies 
+  ahead, including the analysis of generalized fractal generation algorithms
+  such as Julia Sets, and variations of Mandelbrot Sets. 
+Thanks to significant development in the CUDA programming model in recent years,
+  we can perhaps see increases in algorithm design which can better utilize the
+  capabilities of increasingly powerful and flexible hardware. 
 
 \end{multicols}
 
-\section{Images}
 
 
 \end{document}

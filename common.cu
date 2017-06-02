@@ -115,27 +115,13 @@ void mapValueToColor(int *r, int *g, int *b, int value, int absSq, int maxIterat
 		return;
 	}
 
-	int brightness = 256. * log2(1.75 + value - log2(log2((float) absSq))) / log2((double)maxIterations);
+  if(value < 0) {
+    value = 0;
+  }
+
+	int brightness = 256.0 * log2(1.75 + value - log2(log2((float) absSq))) / log2((double)maxIterations);
 	*r = *g = brightness;
 	*b = 255;
-
-  // int d = maxIterations / DIVIDE_FACTOR;
-  // if(value >= maxIterations) {
-  //   *r = *g = *b = 0;
-  // } 
-  // else { 
-  //   if(value < 0) {
-  //     value = 0;
-  //   }
-
-  //   if(value <= d) {
-  //     *r = *g = 0;
-  //     *b = 128 + value * 127 / (d);
-  //   } else {
-  //     *b = 255;
-  //     *r = *g = (value - d) * 255 / (maxIterations - d);
-  //   } 
-  // }   
 } 
 
 __host__ __device__ int calculatePixelValue(int width, int height, int maxIterations,
