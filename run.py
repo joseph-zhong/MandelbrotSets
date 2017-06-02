@@ -98,19 +98,20 @@ for exp in experiments:
     plt.xlabel(exp)
     plt.ylabel('MPix/s')
 
-    vals = experiments[exp][kernel].keys()
-    resolutions = {}
-    for stat in stats:
-        if exp == "res":
-            resolutions[stat] = [float(val) ** 2 / 1000000 /
-                    experiments[exp][kernel][val][stat] for val in vals]
-        else:
-            resolutions[stat] = [float(BASE_RES) ** 2 / 1000000 /
-                    experiments[exp][kernel][val][stat] for val in vals]
-
     for kernel in KERNELS:
+        vals = experiments[exp][kernel].keys()
+        resolutions = {}
+        for stat in stats:
+            if stat not in resolutions:
+                resolutions[stat] = {}
+            if exp == "res":
+                resolutions[stat][kernel] = [float(val) ** 2 / 1e6 /
+                        experiments[exp][kernel][val][stat] for val in vals]
+            else:
+                resolutions[stat][kernel] = [float(BASE_RES) ** 2 / 1e6 /
+                        experiments[exp][kernel][val][stat] for val in vals]
         for stat in resolutions:
-            plt.scatter(vals, resolutions[stat], label="{}_{}".format(kernel, stat), color=next(palette))
+            plt.scatter(vals, resolutions[stat][kernel], label="{}_{}".format(kernel, stat), color=next(palette))
     leg = plt.legend(frameon=True, loc="upper left")
     plt.savefig(os.path.join(EXP_DIR,
         "mpps_graph_exp_{}.png".format(exp)))

@@ -26,7 +26,8 @@
 #include "metrics.h"
 
 __host__ void cudaDPMandelbrotSets(int height, int width, int maxIterations, 
-    const float radius, const complexNum cMin, const complexNum cMax, const char *filename) {
+    const float radius, const complexNum cMin, const complexNum cMax, 
+    float xPos, float yPos, const char *filename) {
   // Host input setup: image.
   const int OUTPUT_SIZE = height * width * sizeof(int);
   int *h_output = (int*) malloc(OUTPUT_SIZE);
@@ -46,7 +47,7 @@ __host__ void cudaDPMandelbrotSets(int height, int width, int maxIterations,
 
   // Launch kernel.
   cudaDPMandelbrotSetsKernel<<<gridSize, blockSize>>>(height, width, maxIterations,
-      cMin, cMax, X_POS_DEFAULT, Y_POS_DEFAULT, width / MIN_SIZE, 1, radius,
+      cMin, cMax, xPos, yPos, width / MIN_SIZE, 1, radius,
       d_output);
 
   // Synchronize across threads once completed.
@@ -82,7 +83,11 @@ __device__ int calculateBorder(int width, int height, int maxIterations,
     complexNum cMin, complexNum cMax, int x0, int y0, int size, const float radius) {
   int tIdx = threadIdx.y * blockDim.x + threadIdx.x;
   int blockSize = blockDim.x * blockDim.y;
+
+  // Set default to just above cap.
   int value = maxIterations + 1;
+
+  // Determine common value if possible.
   for (int pixel = tIdx; pixel < size; pixel += blockSize) {
     for (int boundary = 0; boundary < 4; boundary++) {
       int x = boundary % 2 != 0 ? x0 + pixel : (boundary == 0 ? x0 + size - 1 : x0); 
@@ -91,6 +96,7 @@ __device__ int calculateBorder(int width, int height, int maxIterations,
     }
   }
 
+  // Load values into shared memory.
   __shared__ int s_output[BLOCK_SIZE * DIVIDE_FACTOR];
   int numThreads = min(size, BLOCK_SIZE * DIVIDE_FACTOR);
   if (tIdx < numThreads) {
@@ -98,13 +104,15 @@ __device__ int calculateBorder(int width, int height, int maxIterations,
   }
   __syncthreads();
 
-  // while (numThreads > 1) {
+  // Parallel Reduction to common value.
   for(; numThreads > 1; numThreads /= 2) {
     if (tIdx < numThreads / 2) {
       s_output[tIdx] = commonValue(s_output[tIdx], s_output[tIdx + numThreads / 2], maxIterations);
     }
     __syncthreads();
   }
+  
+  // Reduced output.
   return s_output[0];
 }
 

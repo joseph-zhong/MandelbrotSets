@@ -19,6 +19,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <math.h>
 
 #include "defaults.h"
 #include "common.h"
@@ -89,7 +90,7 @@ void saveImage(const char *filename, int *values, int w, int h, int maxIteration
   for (int y = 0; y < h; y++) {
     for (int x = 0; x < w; x++) {
       int r, g, b;
-      mapValueToColor(&r, &g, &b, values[y * w + x], maxIterations);
+      mapValueToColor(&r, &g, &b, values[y * w + x], x * x + y * y, maxIterations);
       row[3 * x + 0] = (png_byte)r;
       row[3 * x + 1] = (png_byte)g;
       row[3 * x + 2] = (png_byte)b;
@@ -105,24 +106,36 @@ void saveImage(const char *filename, int *values, int w, int h, int maxIteration
 }
 
 
-void mapValueToColor(int *r, int *g, int *b, int value, int maxIterations) {
-  int d = maxIterations / DIVIDE_FACTOR;
-  if(value >= maxIterations) {
-    *r = *g = *b = 0;
-  } 
-  else { 
-    if(value < 0) {
-      value = 0;
-    }
+void mapValueToColor(int *r, int *g, int *b, int value, int absSq, int maxIterations) {
+	// If pixel hit max iteration count, make it black
+	if (value == maxIterations) {
+		*r = 0.0;
+		*g = 0.0;
+		*b = 0.0;
+		return;
+	}
 
-    if(value <= d) {
-      *r = *g = 0;
-      *b = 128 + value * 127 / (d);
-    } else {
-      *b = 255;
-      *r = *g = (value - d) * 255 / (maxIterations - d);
-    } 
-  }   
+	int brightness = 256. * log2(1.75 + value - log2(log2((float) absSq))) / log2((double)maxIterations);
+	*r = *g = brightness;
+	*b = 255;
+
+  // int d = maxIterations / DIVIDE_FACTOR;
+  // if(value >= maxIterations) {
+  //   *r = *g = *b = 0;
+  // } 
+  // else { 
+  //   if(value < 0) {
+  //     value = 0;
+  //   }
+
+  //   if(value <= d) {
+  //     *r = *g = 0;
+  //     *b = 128 + value * 127 / (d);
+  //   } else {
+  //     *b = 255;
+  //     *r = *g = (value - d) * 255 / (maxIterations - d);
+  //   } 
+  // }   
 } 
 
 __host__ __device__ int calculatePixelValue(int width, int height, int maxIterations,

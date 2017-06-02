@@ -54,7 +54,7 @@ void parseArgs(int argc, char *argv[], int *width, int *height, int *maxIteratio
 
 void saveImage(const char *filename, int *values, int w, int h, int maxIterations);
   
-void mapValueToColor(int *r, int *g, int *b, int value, int maxIterations);
+void mapValueToColor(int *r, int *g, int *b, int value, int absSq, int maxIterations);
 
 inline void gpuAssert(cudaError_t code, const char *file, int line)
 {

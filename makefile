@@ -44,7 +44,6 @@ clean:
 	find \( -name '*.out' -or -name '*.o' -or -name '*~' -or -name '*.ppm' \) -delete
 	rm main
 	rm -r output
-	rm *.png
 
 run:
 	./main 10000 10000 256 cudaDP output/cudaDP.png

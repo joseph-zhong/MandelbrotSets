@@ -38,6 +38,8 @@ int main(int argc, char *argv[]) {
   float xMax;
   float yMin;
   float yMax;
+  float xPos;
+  float yPos;
 
   // Set default arguments.
   struct arguments args;
@@ -56,6 +58,9 @@ int main(int argc, char *argv[]) {
   xMax = args.xMax;
   yMin = args.yMin;
   yMax = args.yMax;
+  
+  xPos = xMin + (xMax - xMin) / 2;
+  yPos = yMin + (yMax - yMin) / 2;
 
   if (VERBOSE) {
     printf("\n[main] OPERATING PARAMETERS\n");
@@ -82,7 +87,7 @@ int main(int argc, char *argv[]) {
    cudaNaiveMandelbrotSets(height, width, maxIterations, radius, cMin, cMax, output);
   }
   if (strcmp(kernel, CUDA_DP) == 0) {
-    cudaDPMandelbrotSets(height, width, maxIterations, radius, cMin, cMax, output);
+    cudaDPMandelbrotSets(height, width, maxIterations, radius, cMin, cMax, xPos, yPos, output);
   }
 
   outputTime();

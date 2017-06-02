@@ -8,7 +8,7 @@ multicol, hyperref, listings}
 \\ josephz@cs.washington.edu
 \\ University of Washington}
 \usepackage[top=0.5in, bottom=1in, left=0.5in, right=0.5in]{geometry}
-\graphicspath{ {experiments1} {images} }
+\graphicspath{ {experiments3} {images} }
 \setlist{noitemsep}
 \setlength{\columnsep}{1cm}
 
@@ -73,8 +73,7 @@ Notice that with this strategy, we can notice that complex numbers of real and
 With this strategy, we can then utilize a color mapping function using the
   iteration limit to assign pixel color values for each point. One simple
   algorithm which utilizes this strategy is known as the Escape Time Algorithm,
-  which can compute the per-pixel values of the points within the Mandelbrot
-  Set.
+  which can compute the per-pixel values of the points within the Set.
   
 In this report we compare the performance of the Escape Time Algorithm when 
   implemented naively to calculate the per-pixel value, against an algorithm,
@@ -91,14 +90,11 @@ This implementation strategy is also known as Dynamic Parallelism. Parallel
   during runtime, rather than statically dispatching a stringent fixed number of
   parallel compute resources at compile time. In CUDA C specifically, dynamic
   parallelism was introduced in CUDA 5.0 with the Kepler architecture in 2012,
-  and is available to devices of compute capacity of 3.5 or greater. 
+  and is available to devices of Compute Capability of 3.5 or greater. 
 
 We will see that for the initial and conlonical image of a Mandelbrot set that
   we can achieve significant speed up in terms of pixel values computed per 
-  second for increasing resolution and iteration limits. We also explore 
-  pathological cases in which dynamic parallelism cannot provide much
-  improvement, or where the modified border-tracing algorithm introduces
-  additional overhead against the Escape Time algorithm. Code will be made
+  second for increasing resolution and iteration limits. Code will be made
   available at \url{https://github.com/joseph-zhong/MandelbrotSets}
 
   \section{The Escape Time Algorithm}
@@ -122,10 +118,9 @@ $k$: Input maximum iterations cap. \\
 
 set iterations count to 0. \\
 set z value to ($x$, $y$i) \\
-\textbf{while} count is less than $k$ or $z^2$ is less than 4 \{ \\
+\textbf{while} count is less than $k$ or $z^2$ is less than 4: \\
 $\text{ }$ $z \leftarrow z^2 + c$ \\
 $\text{ }$ increment count \\
-\} \\
 return count
 }} \\
 
@@ -380,42 +375,67 @@ __global__ void cudaDPMandelbrotSetsKernel(
 }
 \end{lstlisting}
 
-Below is the \texttt{calcaulteBorder} implementation.
+Below is the \texttt{calculateBorder} implementation. 
+
+The Escape Time Algorithm is utilized to load pixel values on the border into
+  shared memory, where a parallel reduction is used to reduce the border values
+  into a common value if it exists, or a failure flag otherwise. \\ 
 
 \begin{lstlisting}
-__device__ int calculateBorder(int width, int height, int maxIterations,
-    complexNum cMin, complexNum cMax, int x0, int y0, int size, const float radius) {
-  int tIdx = threadIdx.y * blockDim.x + threadIdx.x;
+__device__ int calculateBorder(int width, 
+  int height, int maxIterations, complexNum cMin, 
+  complexNum cMax, int x0, int y0, int size, 
+  const float radius) {
+
+  int tIdx = threadIdx.y * blockDim.x 
+      + threadIdx.x;
   int blockSize = blockDim.x * blockDim.y;
+
+  // Set default to just above cap.
   int value = maxIterations + 1;
-  for (int pixel = tIdx; pixel < size; pixel += blockSize) {
-    for (int boundary = 0; boundary < 4; boundary++) {
-      int x = boundary \% 2 != 0 ? x0 + pixel : (boundary == 0 ? x0 + size - 1 : x0); 
-      int y = boundary \% 2 == 0 ? y0 + pixel : (boundary == 1 ? y0 + size - 1 : y0);
-      value = commonValue(value, calculatePixelValue(width, height, maxIterations, cMin, cMax, x, y, radius), maxIterations);
+
+  // Determine common value if possible.
+  for (int pixel = tIdx; pixel < size; 
+			pixel += blockSize) {
+    for (int boundary = 0; boundary < 4; 
+				boundary++) {
+      int x = boundary % 2 != 0 ? x0 + pixel : 
+          (boundary == 0 ? x0 + size - 1 : x0); 
+      int y = boundary % 2 == 0 ? y0 + pixel : 
+          (boundary == 1 ? y0 + size - 1 : y0);
+      value = commonValue(value, 
+        calculatePixelValue(width, height, 
+          maxIterations, cMin, cMax, x, y, radius), 
+          maxIterations);
     }
   }
 
-  __shared__ int s_output[BLOCK_SIZE * DIVIDE_FACTOR];
-  int numThreads = min(size, BLOCK_SIZE * DIVIDE_FACTOR);
+  // Load values into shared memory.
+  __shared__ int s_output[BLOCK_SIZE 
+      * DIVIDE_FACTOR];
+  int numThreads = min(size, BLOCK_SIZE 
+      * DIVIDE_FACTOR);
   if (tIdx < numThreads) {
     s_output[tIdx] = value;
   }
   __syncthreads();
 
-  // while (numThreads > 1) {
+  // Parallel Reduction to common value.
   for(; numThreads > 1; numThreads /= 2) {
     if (tIdx < numThreads / 2) {
-      s_output[tIdx] = commonValue(s_output[tIdx], s_output[tIdx + numThreads / 2], maxIterations);
+      s_output[tIdx] = commonValue(s_output[tIdx], 
+            s_output[tIdx + numThreads / 2], 
+            maxIterations);
     }
     __syncthreads();
   }
+  // Reduced output.
   return s_output[0];
 }
 \end{lstlisting}
 
-Below are the \texttt{fillKernel} and \texttt{pixelKernel} implementations.
-  Notice their stark similarity to the original per-pixel implementation.
+Below is the \texttt{fillKernel} implementation. 
+Notice its stark similarity to the original per-pixel implementation.
 
 \begin{lstlisting}
 __global__ void pixelKernel(int width, int height, 
@@ -433,7 +453,12 @@ __global__ void pixelKernel(int width, int height,
       y, radius);
   }
 }
+\end{lstlisting}
 
+Below is the \texttt{pixelKernel} implementation.
+Notice its stark similarity to the original per-pixel implementation.
+
+\begin{lstlisting}
 __global__ void fillKernel(int width, int x0, 
     int y0, int size, int value, int *d_output) {
   int x = threadIdx.x + blockIdx.x * blockDim.x;
@@ -452,36 +477,90 @@ One major difference however, is to realize that the above two kernels were
   runtime, rather than being prepared and run once after compile time! This is
   the core of Dynamic Parallelism: the capacity to \textbf{allocate device
   memory and parallel tasks from children of the host}.
+In general, we can see that the kernels implementing the Border-Tracing
+  algorithm outperform the kernels naively utilizing the Escape Time algorithm.
+
+  \section{Experiment Design}
+
+We specifically chose not to analyze GFLOPs as we deemed that it was a
+  deceptive metric in determining performance. While in measuring quality of
+  hardware, it serves to demonstrate the speed and robustness of an
+  architecture, in terms of algorithm and software design, the goal is not
+  necessarily measured in number of operations. Rather we care about the number
+  of outputs per cost. 
+While GFLOPs and outputs per cost are heavily correlated, in this specific case
+  study, note that the Border-Tracing algorithm optimizes the previous algorithm
+  by entirely skipping operations, while potentially significantly increasing
+  outputs per cost metric. To maintain this correlation, we choose our cost
+  metric as time as it is heavily correlated with expensive computation in terms
+  of energy, and is a useful metric in general, barring consistency within
+  environments.
+To address this consistency issue, we choose then to run all experiments on the
+  same machine with a NVIDIA GeForce GTX 1060 graphics card with 6GB of GDDR5
+  VRAM, 1280 CUDA Cores, a Graphics Clock rated 1.506GHz and a Processor Clock 
+  rated 1.708GHz. It was important to have a graphics with a high memory
+  configuration as we suspected that at inputs of low memory requirement would
+  finish too quickly to provide significant results, in particular with respect
+  to outputs per cost. 
+More importantly, devices with Compute Capability of at least 3.5 are required to
+  utilize Dynamic Parallelism, which has Compute Capability of 6.1.
+
+The primary experiments we analyze between the algorithms are as follow:
+
+\begin{itemize}
+  \item Million Pixels per second output rate.
+  \item Total Kernel Running Time. 
+  \item The impact of increased iteration cap.
+  \item The impact of increased output resolution.
+\end{itemize}
 
   \section{Results}
 
+The below graphs were all generated through our \url{run.py} script using
+  \texttt{matplotlib} and \texttt{subprocess}.
+
 \begin{figure}[H]
-  \includegraphics[width=\linewidth]{experiments1/mpps_graph_exp_iter.png}
+  \includegraphics[width=\linewidth]{experiments3/mpps_graph_exp_iter.png}
   \caption{Megapixels per second, varying iteration cap.}
   \label{fig:mpps_iter}
 \end{figure}
 
+We see from Figure \ref{fig:mmps_iter} that our Border-Tracing kernel
+  outperforms the naive implementation across each iteration cap by a factor of
+  about 50\%. Interestingly, as the iteration cap increases, the variance
+  amongst the trials of the Border-Tracing kernel decreases, with nearly no 
+  variance between the minimum and maximum trials towards the latter half of the 
+  experiment. Also interesting to note that the naive kernel consistently has
+  nearly no variance throughout each of the trials. 
+Overall from the logarithmic behavior of this plot perhaps indicates that as the
+  iteration cap increases, that benefit of parallelism dwindles as the problem
+  becomes increasingly compute bound.  
+
 \begin{figure}[H]
-  \includegraphics[width=\linewidth]{experiments1/mpps_graph_exp_res.png}
+  \includegraphics[width=\linewidth]{experiments3/mpps_graph_exp_res.png}
   \caption{Megapixels per second, varying image resolution.}
-  \label{fig:mpps_res}
 \end{figure}
 
 \begin{figure}[H]
-  \includegraphics[width=\linewidth]{experiments1/running_time_graph_exp_iter.png}
+  \includegraphics[width=\linewidth]{experiments3/running_time_graph_exp_iter.png}
   \caption{Kernel running time, varying iteration cap.}
-  \label{fig:rt_iter}
 \end{figure}
 
 \begin{figure}[H]
-  \includegraphics[width=\linewidth]{experiments1/running_time_graph_exp_res.png}
+  \includegraphics[width=\linewidth]{experiments3/running_time_graph_exp_res.png}
   \caption{Kernel running time, varying image resolution.}
-  \label{fig:rt_res}
 \end{figure}
+
 
 
   \section{Conclusion}
+
+
+
 \end{multicols}
+
+\section{Images}
+
 
 \end{document}
 

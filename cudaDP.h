@@ -26,7 +26,8 @@ __device__ int same_dwell(int d1, int d2);
 __device__ int border_dwell (int w, int h, complexNum cmin, complexNum cmax, int x0, int y0, int d);
 
 __host__ void cudaDPMandelbrotSets(int height, int width, int maxIterations, 
-    const float radius, const complexNum cMin, const complexNum cMax, const char *filename);
+    const float radius, const complexNum cMin, const complexNum cMax, 
+    float xPos, float yPos, const char *filename);
 
 __device__ int commonValue(int v0, int v1, int maxIterations);
 
