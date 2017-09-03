@@ -1,5 +1,13 @@
 # MandelbrotSets
+
 Mandelbrot Sets with Dynamic Parallelism in CUDA C
+
+- Developed under supervision of Tanner Schmidt for CSE599: GPU Programming, Spring 2017
+- University of Washington, Computer Science and Engineering Dept.
+
+## Paper
+
+Paper: https://github.com/joseph-zhong/MandelbrotSets/blob/master/paper/main.pdf
 
 ## Build
 
